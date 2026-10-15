@@ -16,6 +16,7 @@ server/.env
 firmware/*/src/config.h
 firmware/*/config.h
 firmware/arduino-ino/*/secrets.h
+bestallning-erik/*/secrets.h
 
 # Python
 __pycache__

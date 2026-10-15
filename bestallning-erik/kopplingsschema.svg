@@ -1,0 +1,81 @@
+<svg width="100%" viewBox="0 0 720 500" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Testrigg 2 spelare — koppling mot Waveshare ESP32-S3-ETH</title>
+<desc>6 arkadknappar (plats 1 och 2 × JA/NEJ/KANSKE) till GPIO + GND, och en WS2812B-list (2 platser) till GPIO38, 5V och GND.</desc>
+<rect x="0" y="0" width="720" height="500" rx="14" fill="#0c333c"/>
+<text x="24" y="30" font-family="Verdana, sans-serif" font-size="14" font-weight="bold" fill="#f2e7cf">UTMANA EXPERTEN · TESTRIGG 2 SPELARE — Waveshare ESP32-S3-ETH</text>
+
+<!-- GND rail (gray) -->
+<path d="M90 150 V412 H330" fill="none" stroke="#9aa6a2" stroke-width="2"/>
+<text x="78" y="300" text-anchor="end" font-family="Verdana, sans-serif" font-size="10" fill="#9aa6a2" transform="rotate(-90 78 300)">GEMENSAM GND</text>
+
+<!-- board -->
+<rect x="330" y="120" width="150" height="320" rx="10" fill="#0a2930" stroke="#c89b5e" stroke-width="2"/>
+<text x="405" y="112" text-anchor="middle" font-family="Verdana, sans-serif" font-size="12" font-weight="bold" fill="#c89b5e">ESP32-S3-ETH</text>
+<text x="405" y="434" text-anchor="middle" font-family="Verdana, sans-serif" font-size="9" fill="#c98a4a">(WiFi för testet)</text>
+
+<!-- left GPIO pins -->
+<g font-family="Verdana, sans-serif" font-size="11" fill="#f2e7cf">
+<rect x="324" y="162" width="10" height="10" fill="#d4682e"/><text x="340" y="171">GPIO15</text>
+<rect x="324" y="192" width="10" height="10" fill="#d4682e"/><text x="340" y="201">GPIO16</text>
+<rect x="324" y="222" width="10" height="10" fill="#d4682e"/><text x="340" y="231">GPIO17</text>
+<rect x="324" y="272" width="10" height="10" fill="#d4682e"/><text x="340" y="281">GPIO18</text>
+<rect x="324" y="302" width="10" height="10" fill="#d4682e"/><text x="340" y="311">GPIO1</text>
+<rect x="324" y="332" width="10" height="10" fill="#d4682e"/><text x="340" y="341">GPIO2</text>
+<rect x="324" y="407" width="10" height="10" fill="#9aa6a2"/><text x="340" y="416">GND</text>
+</g>
+<!-- right pins -->
+<g font-family="Verdana, sans-serif" font-size="11" fill="#f2e7cf">
+<rect x="476" y="172" width="10" height="10" fill="#36b34a"/><text x="472" y="181" text-anchor="end">GPIO38</text>
+<rect x="476" y="212" width="10" height="10" fill="#e23b2e"/><text x="472" y="221" text-anchor="end">5V (VBUS)</text>
+<rect x="476" y="252" width="10" height="10" fill="#9aa6a2"/><text x="472" y="261" text-anchor="end">GND</text>
+</g>
+
+<!-- buttons: labels ABOVE circle; signal right→GPIO; GND left→rail -->
+<text x="150" y="148" text-anchor="middle" font-family="Verdana, sans-serif" font-size="11" font-weight="bold" fill="#c89b5e">SPELARE 1</text>
+<text x="150" y="258" text-anchor="middle" font-family="Verdana, sans-serif" font-size="11" font-weight="bold" fill="#c89b5e">SPELARE 2</text>
+<g font-family="Verdana, sans-serif" font-size="9" fill="#f2e7cf" text-anchor="middle">
+<circle cx="150" cy="167" r="12" fill="#36b34a"/><text x="195" y="170">JA</text>
+<circle cx="150" cy="197" r="12" fill="#e23b2e"/><text x="197" y="200">NEJ</text>
+<circle cx="150" cy="227" r="12" fill="#f2c021"/><text x="206" y="230">KANSKE</text>
+<circle cx="150" cy="277" r="12" fill="#36b34a"/><text x="195" y="280">JA</text>
+<circle cx="150" cy="307" r="12" fill="#e23b2e"/><text x="197" y="310">NEJ</text>
+<circle cx="150" cy="337" r="12" fill="#f2c021"/><text x="206" y="340">KANSKE</text>
+</g>
+<!-- signal wires (orange): button right edge → GPIO stub -->
+<g stroke="#d4682e" stroke-width="2" fill="none">
+<path d="M162 167 H324"/>
+<path d="M162 197 H324"/>
+<path d="M162 227 H324"/>
+<path d="M162 277 H324"/>
+<path d="M162 307 H324"/>
+<path d="M162 337 H324"/>
+</g>
+<!-- GND stubs (gray): button left edge → rail -->
+<g stroke="#9aa6a2" stroke-width="1.5" fill="none">
+<path d="M138 167 H90"/><path d="M138 197 H90"/><path d="M138 227 H90"/>
+<path d="M138 277 H90"/><path d="M138 307 H90"/><path d="M138 337 H90"/>
+</g>
+
+<!-- LED strip -->
+<rect x="560" y="150" width="130" height="44" rx="6" fill="#141210" stroke="#c89b5e" stroke-width="1.5"/>
+<rect x="564" y="154" width="61" height="36" fill="#123b32"/><rect x="627" y="154" width="61" height="36" fill="#123b32"/>
+<text x="625" y="142" text-anchor="middle" font-family="Verdana, sans-serif" font-size="11" font-weight="bold" fill="#c89b5e">WS2812B · 2 platser</text>
+<g font-family="Verdana, sans-serif" font-size="10" fill="#f2e7cf">
+<text x="556" y="160" text-anchor="end">+5V</text>
+<text x="556" y="174" text-anchor="end">DIN</text>
+<text x="556" y="188" text-anchor="end">GND</text>
+</g>
+<path d="M486 177 H524 V170 H560" fill="none" stroke="#36b34a" stroke-width="2"/>
+<path d="M486 217 H540 V156 H560" fill="none" stroke="#e23b2e" stroke-width="2"/>
+<path d="M486 257 H514 V184 H560" fill="none" stroke="#9aa6a2" stroke-width="2"/>
+
+<!-- notes -->
+<g font-family="Verdana, sans-serif" font-size="11">
+<rect x="300" y="458" width="408" height="34" rx="8" fill="#0a2930" stroke="#8a5a2a" stroke-width="1"/>
+<text x="312" y="479" fill="#c98a4a">Undvikna pinnar: W5500 9–14 · SD 4–7 · PSRAM 33–37 · USB 19/20 · strap 0/3/45/46 · RGB 21</text>
+</g>
+<g font-family="Verdana, sans-serif" font-size="10" fill="#9aa6a2">
+<text x="40" y="474">Knapp: GPIO → knapp → GND</text>
+<text x="40" y="488">(INPUT_PULLUP, tryck = LOW, polaritet spelar ingen roll)</text>
+</g>
+</svg>
