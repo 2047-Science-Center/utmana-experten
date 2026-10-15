@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utmana experten — Designförslag B · Marquee-skärm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     UTMANA EXPERTEN — DESIGNFÖRSLAG B "Marquee-skärm"
+     Retro-futuristisk varieté-scen. Fast palett, fri typografi/motion/layout.
+     ============================================================ */
+  :root{
+    /* Marquee-palett (låst) */
+    --petrol:      #0c333c;
+    --panel:       #0a2930;
+    --panel-2:     #072028;
+    --birch:       #8a5a2a;
+    --birch-lt:    #c89b5e;
+    --orange:      #d4682e;
+    --creme:       #f2e7cf;
+    --creme-dim:   #c98a4a;
+    --lamp-glow:   #ffe8bd;
+    --lamp-core:   #fff3d6;
+    /* Röstfärger (låsta, ordning NEJ·KANSKE·JA) */
+    --nej:         #e23b2e;
+    --kanske:      #f2c021;
+    --ja:          #36b34a;
+    /* härledda */
+    --wood-dark:   #2a1c12;
+    --ink:         #13343c;
+    --scrim:       rgba(5,22,27,.82);
+
+    --f-disp: "Unbounded", system-ui, sans-serif;
+    --f-text: "Hanken Grotesk", system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    font-family:var(--f-text);
+    color:var(--creme);
+    background:
+      radial-gradient(1200px 700px at 82% -8%, #114049 0%, transparent 60%),
+      radial-gradient(900px 600px at 5% 108%, #0e3a44 0%, transparent 55%),
+      var(--petrol);
+    background-attachment:fixed;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* diskret stjärnhimmel i bakgrunden */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 22%, var(--lamp-glow) 50%, transparent),
+      radial-gradient(1.2px 1.2px at 78% 14%, var(--creme-dim) 50%, transparent),
+      radial-gradient(1.6px 1.6px at 64% 72%, var(--lamp-glow) 50%, transparent),
+      radial-gradient(1.1px 1.1px at 28% 84%, var(--creme-dim) 50%, transparent),
+      radial-gradient(1.3px 1.3px at 92% 56%, var(--lamp-glow) 50%, transparent),
+      radial-gradient(1px 1px at 44% 38%, var(--creme-dim) 50%, transparent);
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:clamp(28px,5vw,72px) clamp(16px,4vw,40px) 120px}
+
+  /* ---------- Sidhuvud ---------- */
+  .intro{margin-bottom:clamp(40px,7vw,86px);max-width:760px}
+  .intro__kicker{
+    display:inline-flex;align-items:center;gap:.6em;
+    font-family:var(--f-text);font-weight:700;font-size:.82rem;
+    color:var(--petrol);background:var(--birch-lt);
+    padding:.4em .9em;border-radius:999px;margin:0 0 1.4rem;
+  }
+  .intro h1{
+    font-family:var(--f-disp);font-weight:800;
+    font-size:clamp(2.6rem,7vw,5rem);line-height:.98;letter-spacing:-.02em;
+    margin:0 0 .5rem;color:var(--creme);
+    text-shadow:0 2px 0 rgba(0,0,0,.3);
+  }
+  .intro h1 em{font-style:normal;color:var(--orange)}
+  .intro p{font-size:clamp(1rem,1.9vw,1.22rem);color:var(--creme-dim);max-width:60ch;margin:.4rem 0 0}
+  .intro .vibe{margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.5rem}
+  .swatch{display:inline-flex;align-items:center;gap:.5em;font-size:.78rem;color:var(--creme-dim);
+    border:1px solid rgba(242,231,207,.16);border-radius:999px;padding:.32em .7em}
+  .swatch i{width:.85em;height:.85em;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+
+  /* ---------- Fall / rubrik ---------- */
+  .case{margin:0 0 clamp(52px,8vw,96px)}
+  .case__head{display:flex;align-items:baseline;gap:1rem;margin:0 0 1.1rem;flex-wrap:wrap}
+  .case__no{
+    font-family:var(--f-disp);font-weight:700;font-size:1.05rem;
+    color:var(--petrol);background:var(--orange);
+    width:2.1em;height:2.1em;display:grid;place-items:center;border-radius:50%;flex:none;
+  }
+  .case__title{font-family:var(--f-disp);font-weight:700;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:-.01em;margin:0;color:var(--creme)}
+  .case__note{font-size:.95rem;color:var(--creme-dim);margin:0;flex-basis:100%;padding-left:calc(2.1em + 1rem)}
+  .case__note b{color:var(--birch-lt);font-weight:700}
+
+  /* ---------- Marquee-ram + 16:9-skärm ---------- */
+  .frame{
+    --pad:clamp(16px,2.6vw,32px);
+    position:relative;padding:var(--pad);border-radius:22px;
+    background:linear-gradient(150deg,#311f12,#160d07);
+    box-shadow:inset 0 0 0 2px rgba(200,155,94,.28), 0 36px 70px -34px #000, 0 2px 0 rgba(255,255,255,.04);
+  }
+  .screen{
+    position:relative;aspect-ratio:16/9;width:100%;border-radius:11px;overflow:hidden;
+    container-type:inline-size;
+    background:
+      radial-gradient(130% 120% at 50% -20%, #12454f 0%, var(--petrol) 48%, var(--panel-2) 100%);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.4), inset 0 0 90px rgba(0,0,0,.45);
+  }
+  /* marquee-lampor */
+  .lamps{position:absolute;pointer-events:none;filter:drop-shadow(0 0 5px var(--lamp-glow))}
+  .lamps.t,.lamps.b{left:0;right:0;height:var(--pad);background-position-y:center;background-repeat:repeat-x;
+    background-image:radial-gradient(circle at center, var(--lamp-core) 0 2.2px, var(--lamp-glow) 2.7px, rgba(255,232,189,0) 5.6px);
+    background-size:26px 100%}
+  .lamps.l,.lamps.r{top:0;bottom:0;width:var(--pad);background-position-x:center;background-repeat:repeat-y;
+    background-image:radial-gradient(circle at center, var(--lamp-core) 0 2.2px, var(--lamp-glow) 2.7px, rgba(255,232,189,0) 5.6px);
+    background-size:100% 26px}
+  .lamps.t{top:0}.lamps.b{bottom:0}.lamps.l{left:0}.lamps.r{right:0}
+
+  /* ---------- HUD (namn i hörn + stegetikett) ---------- */
+  .hud{position:absolute;inset:0;padding:3.2cqw 3.6cqw;display:flex;justify-content:space-between;align-items:flex-start;z-index:5;pointer-events:none}
+  .brand{display:inline-flex;align-items:center;gap:.6em;font-family:var(--f-disp);font-weight:700;font-size:1.9cqw;letter-spacing:-.01em;color:var(--creme)}
+  .brand svg{width:2.6cqw;height:2.6cqw;flex:none}
+  .step{font-family:var(--f-text);font-weight:700;font-size:1.5cqw;letter-spacing:.14em;text-transform:uppercase;color:var(--petrol);background:var(--birch-lt);padding:.5em 1em;border-radius:999px}
+
+  /* ---------- Generella bitar ---------- */
+  .hs{width:100%;height:100%;display:block}
+  .pulse{transform-origin:center}
+  .legend{display:flex;gap:1.4cqw;font-size:1.45cqw;color:var(--creme-dim);align-items:center}
+  .legend span{display:inline-flex;align-items:center;gap:.5em}
+  .legend i{width:1.1cqw;height:1.1cqw;border-radius:50%}
+  .legend .hint{margin-left:auto;font-style:italic;color:var(--birch-lt)}
+
+  /* ---------- Attract ---------- */
+  .screen--attract{display:grid;place-items:center;text-align:center}
+  .attract__planet{width:14cqw;height:14cqw;margin-bottom:1cqw}
+  .wordmark{font-family:var(--f-disp);font-weight:800;font-size:9.4cqw;line-height:.9;letter-spacing:-.02em;margin:0;color:var(--creme);text-shadow:0 .4cqw 0 rgba(0,0,0,.35)}
+  .wordmark b{color:var(--orange);font-weight:800}
+  .tagline{font-family:var(--f-text);font-weight:600;font-size:2.5cqw;color:var(--birch-lt);margin:2cqw 0 0}
+  .press{font-family:var(--f-text);font-weight:700;font-size:1.7cqw;letter-spacing:.12em;text-transform:uppercase;color:var(--creme);margin:3.4cqw 0 0;opacity:.0}
+  .press.live{animation:breathe 2.4s ease-in-out infinite}
+  .spark{position:absolute;color:var(--orange)}
+
+  /* ---------- Fråga ---------- */
+  .screen--fraga{display:grid;place-items:center;text-align:center;padding:0 9cqw}
+  .fraga__num{font-family:var(--f-text);font-weight:700;font-size:1.6cqw;letter-spacing:.18em;text-transform:uppercase;color:var(--creme-dim)}
+  .fraga__q{font-family:var(--f-disp);font-weight:700;font-size:6cqw;line-height:1.02;letter-spacing:-.015em;margin:1.8cqw 0 0;color:var(--creme);max-width:16ch}
+  .stance{display:flex;gap:1.6cqw;margin:3.4cqw 0 0}
+  .chip{font-family:var(--f-disp);font-weight:700;font-size:2.4cqw;letter-spacing:.02em;padding:.5em 1.1em;border-radius:14px;border:.28cqw solid currentColor;display:inline-flex;align-items:center;gap:.4em}
+  .chip.nej{color:var(--nej)}.chip.kanske{color:var(--kanske)}.chip.ja{color:var(--ja)}
+  .fraga__hint{font-family:var(--f-text);font-size:1.6cqw;color:var(--creme-dim);margin:2.6cqw 0 0;letter-spacing:.03em}
+
+  /* ---------- Vote / Assess / Post / Facit scen ---------- */
+  .screen--scene{display:flex;flex-direction:column;padding:7.5cqw 4cqw 3cqw}
+  .mini-q{font-family:var(--f-disp);font-weight:600;font-size:2.5cqw;line-height:1.05;text-align:center;margin:0 auto;max-width:22ch;color:var(--creme)}
+  .stage{flex:1;min-height:0;position:relative;margin:.5cqw 0}
+
+  /* ---------- Speak / motivering ---------- */
+  .screen--speak{position:relative}
+  .scrim{position:absolute;inset:0;z-index:3;background:
+      radial-gradient(60% 80% at 62% 52%, var(--scrim) 0%, var(--scrim) 42%, rgba(5,22,27,.45) 100%)}
+  .mic{position:absolute;z-index:4;right:5cqw;top:50%;transform:translateY(-50%);width:56cqw;max-width:60cqw}
+  .mic__who{display:inline-flex;align-items:center;gap:.7em;font-family:var(--f-disp);font-weight:700;font-size:2cqw;color:var(--orange);margin-bottom:1.4cqw}
+  .mic__live{width:1.4cqw;height:1.4cqw;border-radius:50%;background:var(--nej);box-shadow:0 0 0 .5cqw rgba(226,59,46,.3)}
+  .mic__live.on{animation:blink 1.1s steps(1,end) infinite}
+  .mic__text{font-family:var(--f-text);font-weight:500;font-size:4.1cqw;line-height:1.28;margin:0;color:var(--creme);text-wrap:balance}
+  .mic__text .cursor{color:var(--orange)}
+  .mic__timer{margin-top:2.4cqw;font-family:var(--f-disp);font-weight:700;font-size:1.7cqw;letter-spacing:.06em;color:var(--birch-lt);display:inline-flex;align-items:center;gap:.6em}
+  .mic__timer b{color:var(--creme)}
+
+  /* ---------- Assess ---------- */
+  .think{position:absolute;inset:0;z-index:4;display:grid;place-items:center;text-align:center}
+  .think__planet{width:13cqw;height:13cqw;margin-bottom:1.6cqw}
+  .think__planet.spin{animation:spin 14s linear infinite}
+  .think h3{font-family:var(--f-disp);font-weight:700;font-size:3.4cqw;margin:0;color:var(--creme)}
+  .think h3 .dots::after{content:"";animation:dots 1.6s steps(4,end) infinite}
+  .think p{font-family:var(--f-text);font-size:1.8cqw;color:var(--creme-dim);margin:1cqw auto 0;max-width:34ch}
+  .think__bar{margin-top:2.6cqw;width:30cqw;height:.9cqw;border-radius:999px;background:rgba(242,231,207,.12);overflow:hidden}
+  .think__bar i{display:block;height:100%;width:40%;border-radius:999px;background:linear-gradient(90deg,var(--orange),var(--kanske));animation:scan 2.1s ease-in-out infinite}
+
+  /* ---------- Facit ---------- */
+  .screen--facit{display:grid;grid-template-columns:1fr .92fr;align-items:center;gap:3cqw;padding:7.5cqw 4.5cqw 4cqw}
+  .verdict__eyebrow{font-family:var(--f-text);font-weight:700;font-size:1.5cqw;letter-spacing:.18em;text-transform:uppercase;color:var(--creme-dim);margin:0}
+  .verdict__answer{font-family:var(--f-disp);font-weight:800;font-size:7cqw;line-height:.95;margin:.6cqw 0 0;color:var(--kanske);text-shadow:0 0 6cqw rgba(242,192,33,.35)}
+  .verdict__body{font-family:var(--f-text);font-size:2cqw;line-height:1.42;color:var(--creme);margin:2cqw 0 0;max-width:30ch}
+  .verdict__body .lead{color:var(--birch-lt);font-weight:700}
+
+  /* ---------- Feedback ---------- */
+  .screen--feedback{display:flex;flex-direction:column;padding:7cqw 4.5cqw 3.5cqw}
+  .fb__title{font-family:var(--f-disp);font-weight:700;font-size:3cqw;margin:0 0 2cqw;text-align:center;color:var(--creme)}
+  .fb__grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:0 4cqw;min-height:0}
+  .plate{display:grid;grid-template-columns:auto 1fr;gap:1.4cqw;align-items:center;padding:1.5cqw 0;border-bottom:1px solid rgba(200,155,94,.22)}
+  .plate__tab{position:relative;width:.7cqw;align-self:stretch;border-radius:999px;background:var(--birch)}
+  .plate__tab.nej{background:var(--nej)}.plate__tab.kanske{background:var(--kanske)}.plate__tab.ja{background:var(--ja)}
+  .plate__name{font-family:var(--f-disp);font-weight:700;font-size:1.9cqw;color:var(--creme);display:flex;align-items:center;gap:.6em}
+  .plate__vote{font-family:var(--f-text);font-weight:700;font-size:1.2cqw;letter-spacing:.08em;text-transform:uppercase;padding:.2em .7em;border-radius:999px;color:var(--petrol)}
+  .plate__vote.nej{background:var(--nej)}.plate__vote.kanske{background:var(--kanske)}.plate__vote.ja{background:var(--ja)}
+  .plate__text{font-family:var(--f-text);font-size:1.5cqw;line-height:1.34;color:var(--creme-dim);margin:.3cqw 0 0}
+
+  /* ---------- Reveal ---------- */
+  .screen--reveal{display:grid;grid-template-columns:.8fr 1.2fr;align-items:center;gap:3cqw;padding:7.5cqw 5cqw 4cqw;position:relative;overflow:hidden}
+  .sweep{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,243,214,.14) 50%,transparent 60%);transform:translateX(-30%)}
+  .sweep.go{animation:sweep 2.6s ease-in-out infinite}
+  .delta{position:relative;z-index:2;text-align:left}
+  .delta__big{font-family:var(--f-disp);font-weight:800;font-size:12cqw;line-height:.85;color:var(--ja);margin:0;text-shadow:0 0 8cqw rgba(54,179,74,.3)}
+  .delta__lbl{font-family:var(--f-disp);font-weight:700;font-size:2.6cqw;color:var(--creme);margin:.4cqw 0 0}
+  .delta__sub{font-family:var(--f-text);font-size:1.6cqw;color:var(--creme-dim);margin:1.4cqw 0 0;max-width:24ch}
+  .dist{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:3cqw}
+  .dist h4{font-family:var(--f-text);font-weight:700;font-size:1.5cqw;letter-spacing:.16em;text-transform:uppercase;color:var(--creme-dim);margin:0 0 1.4cqw}
+  .bar{display:grid;grid-template-columns:3.2cqw 1fr;align-items:center;gap:1cqw;margin:0 0 1.1cqw}
+  .bar__k{font-family:var(--f-disp);font-weight:700;font-size:1.3cqw;text-align:right}
+  .bar__k.nej{color:var(--nej)}.bar__k.kanske{color:var(--kanske)}.bar__k.ja{color:var(--ja)}
+  .bar__track{height:2.4cqw;background:rgba(242,231,207,.09);border-radius:7px;overflow:hidden}
+  .bar__fill{height:100%;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding-right:.7em;font-family:var(--f-disp);font-weight:700;font-size:1.3cqw;color:var(--petrol)}
+  .bar__fill.nej{background:var(--nej)}.bar__fill.kanske{background:var(--kanske)}.bar__fill.ja{background:var(--ja)}
+
+  /* ---------- Caption under vissa scener ---------- */
+  .caption{text-align:center;font-family:var(--f-text);font-size:1.5cqw;color:var(--birch-lt);font-style:italic;margin:.4cqw 0 0;position:relative;z-index:6}
+
+  /* ============ MOTION ============ */
+  @keyframes chaseX{to{background-position-x:26px}}
+  @keyframes chaseY{to{background-position-y:26px}}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.25}}
+  @keyframes pulseGlow{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.12;transform:scale(1.12)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+  @keyframes scan{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+  @keyframes sweep{0%{transform:translateX(-40%)}60%,100%{transform:translateX(140%)}}
+  @keyframes bloom{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
+
+  @media (prefers-reduced-motion: no-preference){
+    .lamps.t,.lamps.b{animation:chaseX 1.5s linear infinite}
+    .lamps.l,.lamps.r{animation:chaseY 1.5s linear infinite}
+    .lamps.r,.lamps.b{animation-direction:reverse}
+    .pulse{animation:pulseGlow 1.9s ease-in-out infinite}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+    .press{opacity:.9}
+  }
+
+  /* ---------- Responsivt ---------- */
+  @media (max-width:640px){
+    .screen--facit,.screen--reveal{grid-template-columns:1fr}
+    .case__note{padding-left:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="intro">
+    <span class="intro__kicker">Designförslag B · Marquee-skärm</span>
+    <h1>Utmana <em>experten</em></h1>
+    <p>Den centrala game-show-skärmen för stationen. En enda skärm styr spelet; de sex platserna sitter runt ett hästsko-bord med sina arkadknappar — skärmen visar hästskon live, aldrig knapparna. Här är varje nyckel-state i 16:9, i sin fulla studio-prakt.</p>
+    <div class="vibe">
+      <span class="swatch"><i style="background:#0c333c"></i>Petrol</span>
+      <span class="swatch"><i style="background:#8a5a2a"></i>Björk</span>
+      <span class="swatch"><i style="background:#d4682e"></i>Bränd orange</span>
+      <span class="swatch"><i style="background:#f2e7cf"></i>Creme</span>
+      <span class="swatch"><i style="background:#e23b2e"></i>Nej</span>
+      <span class="swatch"><i style="background:#f2c021"></i>Kanske</span>
+      <span class="swatch"><i style="background:#36b34a"></i>Ja</span>
+    </div>
+  </header>
+
+  <!-- 1. ATTRACT -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">1</span><h2 class="case__title">Attract — väntläge</h2>
+      <p class="case__note">Marquee-ramen lever, planeten snurrar lugnt, uppmaningen andas. Väntar på första knapptrycket.</p></div>
+    <div class="frame">
+      <div class="screen screen--attract">
+        <svg class="spark" style="width:3cqw;height:3cqw;top:14%;left:18%" viewBox="0 0 24 24"><path d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z" fill="currentColor"/></svg>
+        <svg class="spark" style="width:2cqw;height:2cqw;top:22%;right:20%" viewBox="0 0 24 24"><path d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z" fill="currentColor"/></svg>
+        <svg class="spark" style="width:2.4cqw;height:2.4cqw;bottom:16%;left:30%" viewBox="0 0 24 24"><path d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z" fill="currentColor"/></svg>
+        <svg class="attract__planet" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="58" r="30" fill="#d4682e"/>
+          <circle cx="50" cy="48" r="9" fill="#e9915c" opacity=".7"/>
+          <ellipse cx="60" cy="60" rx="52" ry="16" fill="none" stroke="#c89b5e" stroke-width="4" transform="rotate(-18 60 60)"/>
+        </svg>
+        <h1 class="wordmark">UTMANA<br><b>EXPERTEN</b></h1>
+        <p class="tagline">Ta ställning. Möt verkligheten. Tänk om.</p>
+        <p class="press live">Tryck på valfri knapp för att börja</p>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 2. FRÅGA -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">2</span><h2 class="case__title">Fråga — påståendet</h2>
+      <p class="case__note">Frågan överst och centralt som dagens hjälte. De tre möjliga svaren ligger i knapparnas ordning: NEJ · KANSKE · JA.</p></div>
+    <div class="frame">
+      <div class="screen screen--fraga">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Fråga 1</span></div>
+        <div class="fraga__num">Fråga 1 av 5</div>
+        <h1 class="fraga__q">Kommer AI att ta över ditt drömjobb?</h1>
+        <div class="stance">
+          <span class="chip nej">NEJ</span>
+          <span class="chip kanske">KANSKE</span>
+          <span class="chip ja">JA</span>
+        </div>
+        <p class="fraga__hint">Svara på knapparna vid din plats</p>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 3. VOTE (SIGNATUR) -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">3</span><h2 class="case__title">Röstning — hästskon tänds</h2>
+      <p class="case__note"><b>Signaturskärm.</b> När någon röstar tänds deras plats i hästsko-illustrationen med röstfärgen — samtidigt som deras fysiska LED. Publiken ser direkt vem som tycker vad.</p></div>
+    <div class="frame">
+      <div class="screen screen--scene screen--vote">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Röstning · före</span></div>
+        <h2 class="mini-q">Kommer AI att ta över ditt drömjobb?</h2>
+        <div class="stage" id="hsVote"></div>
+        <div class="legend">
+          <span><i style="background:var(--nej)"></i>Nej</span>
+          <span><i style="background:var(--kanske)"></i>Kanske</span>
+          <span><i style="background:var(--ja)"></i>Ja</span>
+          <span class="hint">Knapparna sitter på borden — inte på skärmen</span>
+        </div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 4. SPEAK (SIGNATUR) -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">4</span><h2 class="case__title">Motivering — mikrofonen tar över</h2>
+      <p class="case__note"><b>Signaturskärm.</b> Platsen som pratar spotlightas, resten av hästskon mörknar, och det mikrofonen hör växer till stort live-transkript mitt på skärmen.</p></div>
+    <div class="frame">
+      <div class="screen screen--scene screen--speak">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Motivering</span></div>
+        <div class="stage" id="hsSpeak"></div>
+        <div class="scrim"></div>
+        <div class="mic">
+          <span class="mic__who"><span class="mic__live on"></span>Noor har ordet</span>
+          <p class="mic__text">Jag tror ändå inte att en robot kan göra allt mitt jobb — det behövs alltid någon som förstår andra människor. Men samtidigt ser jag ju hur mycket som redan sköts av appar<span class="cursor">▍</span></p>
+          <div class="mic__timer">⏱ <b>00:08</b> kvar · valfri knapp = KLAR ▸</div>
+        </div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 5. POST-TUR (SIGNATUR) -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">5</span><h2 class="case__title">Efter turen — pratbubblan dockar</h2>
+      <p class="case__note"><b>Signaturskärm.</b> När personen är klar animeras textblocket ner till en pratbubbla som dockar bredvid platsen i hästskon. Allas motiveringar byggs upp runt bordet.</p></div>
+    <div class="frame">
+      <div class="screen screen--scene screen--post">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Nästa plats ▸</span></div>
+        <h2 class="mini-q">Kommer AI att ta över ditt drömjobb?</h2>
+        <div class="stage" id="hsPost"></div>
+        <p class="caption">Noors motivering sparad — Elias står på tur</p>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 6. ASSESS -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">6</span><h2 class="case__title">Expertens dom — AI väger samman</h2>
+      <p class="case__note">Latensmask: planeten snurrar och ett sken skannar medan den riktiga per-person-bedömningen hämtas. Hästskon vilar dämpad i bakgrunden.</p></div>
+    <div class="frame">
+      <div class="screen screen--scene screen--assess">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Expertens dom</span></div>
+        <div class="stage" id="hsAssess"></div>
+        <div class="think">
+          <svg class="think__planet spin" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="58" r="26" fill="#d4682e"/>
+            <circle cx="52" cy="50" r="7" fill="#e9915c" opacity=".7"/>
+            <ellipse cx="60" cy="60" rx="48" ry="15" fill="none" stroke="#c89b5e" stroke-width="4" transform="rotate(-18 60 60)"/>
+          </svg>
+          <h3>Experten tänker<span class="dots"></span></h3>
+          <p>Väger samman allas svar mot hur arbetslivet faktiskt ser ut.</p>
+          <div class="think__bar"><i></i></div>
+        </div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 7. FACIT -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">7</span><h2 class="case__title">Facit — rätt svar</h2>
+      <p class="case__note">Rätt svar slår upp stort, och samma tredjedel tänds på <em>alla</em> platser i hästskon (= LED-stripens facit-signal). Här blev svaret KANSKE.</p></div>
+    <div class="frame">
+      <div class="screen screen--facit">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Facit</span></div>
+        <div class="verdict">
+          <p class="verdict__eyebrow">Expertens svar</p>
+          <p class="verdict__answer">KANSKE</p>
+          <p class="verdict__body"><span class="lead">Både och.</span> AI tar över delar av nästan alla yrken — men nästan inga försvinner helt. Det som avgör är om du lär dig att jobba med verktygen, inte emot dem.</p>
+        </div>
+        <div class="stage" id="hsFacit"></div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 8. FEEDBACK -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">8</span><h2 class="case__title">Återkoppling — person för person</h2>
+      <p class="case__note">AI:ns personliga text per plats, satt som studions namnskyltar: platsfärg, namn, eget svar och "så här tänkte du".</p></div>
+    <div class="frame">
+      <div class="screen screen--feedback">
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Återkoppling</span></div>
+        <h2 class="fb__title">Så här tänkte ni</h2>
+        <div class="fb__grid">
+          <div class="plate"><span class="plate__tab ja"></span><div><div class="plate__name">Vide <span class="plate__vote ja">Ja</span></div><p class="plate__text">Du såg hotet tydligt — men missade att nya jobb också skapas.</p></div></div>
+          <div class="plate"><span class="plate__tab kanske"></span><div><div class="plate__name">Noor <span class="plate__vote kanske">Kanske</span></div><p class="plate__text">Du landade nära expertens svar. Stark poäng om det mänskliga mötet.</p></div></div>
+          <div class="plate"><span class="plate__tab nej"></span><div><div class="plate__name">Elias <span class="plate__vote nej">Nej</span></div><p class="plate__text">Modigt nej — men flera av dina exempel förändras redan snabbt.</p></div></div>
+          <div class="plate"><span class="plate__tab ja"></span><div><div class="plate__name">Saga <span class="plate__vote ja">Ja</span></div><p class="plate__text">Du vågade ta ställning. Väg in vad som är svårt att automatisera.</p></div></div>
+          <div class="plate"><span class="plate__tab kanske"></span><div><div class="plate__name">Omar <span class="plate__vote kanske">Kanske</span></div><p class="plate__text">Nyanserat. Du ser både möjligheten och risken samtidigt.</p></div></div>
+          <div class="plate"><span class="plate__tab ja"></span><div><div class="plate__name">Liv <span class="plate__vote ja">Ja</span></div><p class="plate__text">Tydlig linje. Fundera på vilka delar av jobbet som faktiskt är trygga.</p></div></div>
+        </div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+  <!-- 9. REVEAL -->
+  <section class="case">
+    <div class="case__head"><span class="case__no">9</span><h2 class="case__title">Före → efter — tänkte ni om?</h2>
+      <p class="case__note">Glappet mellan rösten före och efter är hela poängen. Ett ljus-svep och ett stort delta kröner rundan.</p></div>
+    <div class="frame">
+      <div class="screen screen--reveal">
+        <div class="sweep go"></div>
+        <div class="hud"><span class="brand">Utmana experten</span><span class="step">Före → efter</span></div>
+        <div class="delta">
+          <p class="delta__big">+3</p>
+          <p class="delta__lbl">tänkte om</p>
+          <p class="delta__sub">Hälften av gruppen flyttade sitt svar mot mitten efter mötet med verkligheten.</p>
+        </div>
+        <div class="dist">
+          <div>
+            <h4>Före</h4>
+            <div class="bar"><span class="bar__k ja">JA</span><div class="bar__track"><div class="bar__fill ja" style="width:100%">3</div></div></div>
+            <div class="bar"><span class="bar__k kanske">KANS</span><div class="bar__track"><div class="bar__fill kanske" style="width:66%">2</div></div></div>
+            <div class="bar"><span class="bar__k nej">NEJ</span><div class="bar__track"><div class="bar__fill nej" style="width:33%">1</div></div></div>
+          </div>
+          <div>
+            <h4>Efter</h4>
+            <div class="bar"><span class="bar__k ja">JA</span><div class="bar__track"><div class="bar__fill ja" style="width:33%">1</div></div></div>
+            <div class="bar"><span class="bar__k kanske">KANS</span><div class="bar__track"><div class="bar__fill kanske" style="width:100%">4</div></div></div>
+            <div class="bar"><span class="bar__k nej">NEJ</span><div class="bar__track"><div class="bar__fill nej" style="width:33%">1</div></div></div>
+          </div>
+        </div>
+      </div>
+      <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---- Hästsko-illustration: en renderare, flera states ---- */
+const NAMES={1:"Vide",2:"Noor",3:"Elias",4:"Saga",5:"Omar",6:"Liv"};
+/* U öppen uppåt mot scenen/TV:n. Vänster arm uppifrån: 1,2 · botten: 3,4 · höger arm nedifrån-upp: 5,6 */
+const POS={1:{x:250,y:255},2:{x:205,y:400},3:{x:335,y:525},4:{x:665,y:525},5:{x:795,y:400},6:{x:750,y:255}};
+const VC={ja:"#36b34a",kanske:"#f2c021",nej:"#e23b2e"};
+const SEG=["nej","kanske","ja"]; /* skärmordning NEJ·KANSKE·JA */
+
+function segs(lit){
+  const w=22,h=13,gap=8,total=3*w+2*gap,x0=-total/2;
+  return SEG.map((k,i)=>{
+    const x=x0+i*(w+gap), on=lit===k, c=VC[k];
+    const halo=on?`<rect x="${x-4}" y="-4" width="${w+8}" height="${h+8}" rx="6" fill="${c}" opacity=".4"/>`:"";
+    return `${halo}<rect x="${x}" y="0" width="${w}" height="${h}" rx="4" fill="${on?c:'rgba(242,231,207,.12)'}" stroke="${on?c:'rgba(242,231,207,.2)'}" stroke-width="1"/>`;
+  }).join("");
+}
+function seat(n,o){
+  const {x,y}=POS[n];
+  const vote=o.votes?o.votes[n]:null;
+  const lit=o.facit||vote;
+  const active=o.active===n;
+  const dim=o.dim&&!active;
+  const ringC=active?"#f2e7cf":(vote?VC[vote]:"#8a5a2a");
+  const ringW=(active||vote)?5:2.5;
+  const spot=active?`<path d="M0,-210 L150,-20 L-150,-20 Z" fill="url(#spot)" opacity=".55"/>`:"";
+  const halo=active?`<circle r="72" fill="none" stroke="#f2e7cf" stroke-width="2" class="pulse" opacity=".55"/><circle r="63" fill="#f2e7cf" opacity=".09"/>`:"";
+  return `<g transform="translate(${x},${y})" opacity="${dim?0.34:1}">
+    ${spot}${halo}
+    <circle r="50" fill="#0a2930" stroke="${ringC}" stroke-width="${ringW}"/>
+    <g fill="${active?'#f2e7cf':'#c89b5e'}">
+      <circle cx="0" cy="-10" r="12"/>
+      <path d="M-22,22 a22,19 0 0 1 44,0 Z"/>
+    </g>
+    <g transform="translate(0,62)">${segs(lit)}</g>
+    <g transform="translate(0,-50)"><circle r="15" fill="#d4682e"/><text y="5.5" text-anchor="middle" font-family="Unbounded" font-weight="700" font-size="17" fill="#160d07">${n}</text></g>
+    <text y="102" text-anchor="middle" font-family="Hanken Grotesk" font-weight="700" font-size="21" fill="${active?'#f2e7cf':'#c98a4a'}">${NAMES[n]}</text>
+  </g>`;
+}
+function bubble(txt){
+  return `<g>
+    <path d="M300,392 L248,408 L300,428 Z" fill="#f2e7cf"/>
+    <rect x="292" y="300" width="348" height="150" rx="18" fill="#f2e7cf"/>
+    <foreignObject x="312" y="314" width="308" height="124">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'Hanken Grotesk',sans-serif;color:#13343c;font-size:20px;line-height:1.36;font-weight:500">${txt}</div>
+    </foreignObject>
+  </g>`;
+}
+function stage(tv){
+  return `<g transform="translate(500,116)">
+    <rect x="-172" y="-58" width="344" height="116" rx="12" fill="url(#tv)" stroke="#c89b5e" stroke-width="3"/>
+    <text y="-16" text-anchor="middle" font-family="Hanken Grotesk" font-weight="700" font-size="15" letter-spacing="3" fill="#c98a4a">PÅ SCEN</text>
+    <text y="18" text-anchor="middle" font-family="Unbounded" font-weight="700" font-size="22" fill="#f2e7cf">${tv}</text>
+    <circle cx="150" cy="-40" r="5" fill="#e23b2e"/>
+  </g>`;
+}
+function horseshoe(o){
+  o=o||{};
+  const d="M250,255 L205,400 Q192,540 348,545 L652,545 Q808,540 795,400 L750,255";
+  return `<svg class="hs" viewBox="0 0 1000 640" role="img" aria-label="Hästsko-bord med sex platser runt en scen">
+    <defs>
+      <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c89b5e"/><stop offset=".5" stop-color="#8a5a2a"/><stop offset="1" stop-color="#5e3c1b"/></linearGradient>
+      <radialGradient id="spot" cx="50%" cy="100%" r="80%"><stop offset="0" stop-color="#f2e7cf"/><stop offset="1" stop-color="rgba(242,231,207,0)"/></radialGradient>
+      <radialGradient id="tv" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#114048"/><stop offset="1" stop-color="#061c23"/></radialGradient>
+    </defs>
+    <path d="${d}" fill="none" stroke="url(#wood)" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${d}" fill="none" stroke="#160d07" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" opacity=".16"/>
+    ${stage(o.tv||"AI &amp; ditt jobb")}
+    ${[1,2,3,4,5,6].map(n=>seat(n,o)).join("")}
+    ${o.bubble?bubble(o.bubble):""}
+  </svg>`;
+}
+
+const votes={1:"ja",2:"kanske",3:"nej",4:"ja",5:"kanske",6:"ja"};
+const set=(id,o)=>{const el=document.getElementById(id);if(el)el.innerHTML=horseshoe(o);};
+set("hsVote",  {votes});
+set("hsSpeak", {votes,active:2,dim:true});
+set("hsPost",  {votes,bubble:"En robot kan inte förstå människor som jag — men mycket sköts ju redan av appar."});
+set("hsAssess",{votes,dim:true});
+set("hsFacit", {facit:"kanske",tv:"Rätt svar"});
+
+/* planet-ikon till HUD:en */
+document.querySelectorAll(".brand").forEach(b=>{
+  b.insertAdjacentHTML("afterbegin",
+    `<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="58" r="26" fill="#d4682e"/><ellipse cx="60" cy="60" rx="48" ry="15" fill="none" stroke="#c89b5e" stroke-width="5" transform="rotate(-18 60 60)"/></svg>`);
+});
+</script>
+</body>
+</html>

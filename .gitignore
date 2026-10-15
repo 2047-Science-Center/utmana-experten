@@ -1,0 +1,22 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+coverage
+
+# Hemligheter — aldrig i git. Nyckel (AI_API_KEY, ev. ELEVENLABS_API_KEY) bor i
+# gatewayns .env och ingenstans annars.
+.env
+.env.*
+server/.env
+
+# Firmware-hemligheter (WiFi/MQTT) — committa bara *.example.h.
+firmware/*/src/config.h
+firmware/*/config.h
+firmware/arduino-ino/*/secrets.h
+
+# Python
+__pycache__
+*.pyc

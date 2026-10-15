@@ -1,0 +1,12 @@
+{
+  "verklighet": {
+    "typ": "video",
+    "aspect": "16:9",
+    "brief": "Kort verklighetsklipp: egenföretagare + anställd berättar om trygghet/otrygghet i praktiken (ca 30 s)"
+  },
+  "facit": {
+    "typ": "image",
+    "aspect": "16:9",
+    "brief": "Facit-bild: statistik/citat som visar att 'fast = alltid tryggare' inte stämmer"
+  }
+}

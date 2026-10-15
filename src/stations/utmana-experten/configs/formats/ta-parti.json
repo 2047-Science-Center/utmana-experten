@@ -1,0 +1,14 @@
+{
+  "id": "ta-parti",
+  "namn": "Ta parti",
+  "fraga": "Lön eller trygghet — vad väger tyngst när du väljer jobb?",
+  "steps": [
+    { "typ": "present", "contentId": "dilemma", "source": "screen" },
+    { "typ": "vote", "val": ["ja", "nej"], "matpunkt": "fore" },
+    { "typ": "speak_round", "sekunder": 15 },
+    { "typ": "assess", "configId": "utmana-ta-parti", "perPerson": true },
+    { "typ": "feedback", "form": "text-per-person" },
+    { "typ": "reveal", "kalla": "delta" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

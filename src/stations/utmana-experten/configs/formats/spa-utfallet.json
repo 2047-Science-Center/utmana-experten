@@ -1,0 +1,14 @@
+{
+  "id": "spa-utfallet",
+  "namn": "Spå utfallet",
+  "fraga": "Tror ni att fler eller färre jobbar kvar på samma arbetsplats om tio år?",
+  "facit": "nej",
+  "steps": [
+    { "typ": "present", "contentId": "fraga", "source": "screen" },
+    { "typ": "vote", "val": ["ja", "nej"], "matpunkt": "fore" },
+    { "typ": "clip", "contentId": "utfall", "rubrik": "Så blev det" },
+    { "typ": "facit", "contentId": "facit", "ordning": "facit-forst", "ratt": "nej" },
+    { "typ": "reveal", "kalla": "delta" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

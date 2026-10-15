@@ -1,0 +1,18 @@
+{
+  "id": "tyck-till-facit",
+  "namn": "Tyck till & facit",
+  "fraga": "Är en fast anställning alltid tryggare än att vara egenföretagare?",
+  "facit": "nej",
+  "steps": [
+    { "typ": "present", "contentId": "fraga", "source": "screen" },
+    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "fore" },
+    { "typ": "speak_round", "sekunder": 15 },
+    { "typ": "assess", "configId": "utmana-tyck-till", "perPerson": true },
+    { "typ": "facit", "contentId": "facit", "ordning": "facit-forst", "ratt": "nej" },
+    { "typ": "feedback", "form": "text-per-person" },
+    { "typ": "clip", "contentId": "verklighet", "rubrik": "Kan det här få er att tänka om?" },
+    { "typ": "vote", "val": ["ja", "nej"], "matpunkt": "efter" },
+    { "typ": "reveal", "kalla": "delta" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

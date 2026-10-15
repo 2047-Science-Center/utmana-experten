@@ -1,0 +1,12 @@
+{
+  "id": "prata-in",
+  "namn": "Prata in",
+  "fraga": "Vad får ett jobb att kännas meningsfullt för dig?",
+  "steps": [
+    { "typ": "present", "contentId": "fraga", "source": "screen" },
+    { "typ": "speak_round", "sekunder": 20 },
+    { "typ": "assess", "configId": "utmana-prata-in", "perPerson": true },
+    { "typ": "feedback", "form": "text-per-person" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

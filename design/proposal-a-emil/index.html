@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Utmana experten — Förslag A (Marquee)</title>
+<!--
+  DESIGNFÖRSLAG A — "Marquee-skärm" för Utmana experten (2047 Science Center).
+  Rent designförslag. Rör ALDRIG src/. Fristående sida, inga byggsteg.
+  Fonter: Google Fonts (Fraunces + Inter). Allt annat inline.
+  Ramen: Emil Kowalski (design engineering) — timing, easing, origin-aware motion,
+  prefers-reduced-motion, transform/opacity-only animationer.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* --- Låst Marquee-palett --- */
+    --bg: #0c333c;
+    --panel: #0a2930;
+    --wood: #8a5a2a;
+    --wood-light: #c89b5e;
+    --orange: #d4682e;
+    --creme: #f2e7cf;
+    --creme-dim: #c98a4a;
+    --lamp-glow: #ffe8bd;
+    --lamp-core: #fff3d6;
+
+    /* --- Låsta röstfärger (ordning NEJ · KANSKE · JA) --- */
+    --vote-nej: #e23b2e;
+    --vote-kanske: #f2c021;
+    --vote-ja: #36b34a;
+
+    /* --- Emil: egna easing-kurvor (de inbyggda är för veka) --- */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+    --radius: 18px;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-ui: "Inter", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #104049 0%, transparent 60%),
+      var(--bg);
+    color: var(--creme);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    padding: 48px 16px 120px;
+  }
+
+  /* ---------- Sidhuvud (showcase-ram, ej del av skärmen) ---------- */
+  .doc-head {
+    max-width: 1120px;
+    margin: 0 auto 56px;
+    text-align: center;
+  }
+  .doc-kicker {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--creme-dim);
+    margin: 0 0 14px;
+  }
+  .doc-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    line-height: 1.02;
+    margin: 0 0 16px;
+    color: var(--creme);
+  }
+  .doc-title .accent { color: var(--orange); }
+  .doc-lead {
+    max-width: 680px;
+    margin: 0 auto;
+    color: var(--creme-dim);
+    font-size: 1.02rem;
+  }
+  .legend {
+    display: inline-flex;
+    gap: 22px;
+    margin-top: 28px;
+    padding: 12px 22px;
+    border: 1px solid rgba(242, 231, 207, 0.14);
+    border-radius: 999px;
+    background: rgba(10, 41, 48, 0.5);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 9px; font-size: 0.86rem; letter-spacing: 0.04em; }
+  .legend i { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+  .legend .l-nej { background: var(--vote-nej); box-shadow: 0 0 10px var(--vote-nej); }
+  .legend .l-kanske { background: var(--vote-kanske); box-shadow: 0 0 10px var(--vote-kanske); }
+  .legend .l-ja { background: var(--vote-ja); box-shadow: 0 0 10px var(--vote-ja); }
+
+  /* ---------- Showcase-sektioner ---------- */
+  .case {
+    max-width: 1120px;
+    margin: 0 auto 72px;
+  }
+  .case__label {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 0 18px;
+    flex-wrap: wrap;
+  }
+  .case__step {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--wood-light);
+    padding: 4px 11px;
+    border-radius: 6px;
+  }
+  .case__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--creme);
+  }
+  .case__note { color: var(--creme-dim); font-size: 0.92rem; margin: 0; }
+  .case__signature {
+    margin-left: auto;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--orange);
+    border: 1px solid rgba(212, 104, 46, 0.5);
+    padding: 4px 11px;
+    border-radius: 6px;
+    align-self: center;
+  }
+  .replay {
+    margin-left: 10px;
+    font: inherit;
+    font-size: 0.8rem;
+    color: var(--creme);
+    background: rgba(242, 231, 207, 0.08);
+    border: 1px solid rgba(242, 231, 207, 0.22);
+    border-radius: 8px;
+    padding: 6px 13px;
+    cursor: pointer;
+    transition: transform 140ms var(--ease-out), background 160ms ease;
+    align-self: center;
+  }
+  .replay:hover { background: rgba(242, 231, 207, 0.16); }
+  .replay:active { transform: scale(0.96); }
+
+  /* ====================================================================
+     SKÄRMEN — 16:9, marquee-ram runt. Allt häri är den faktiska looken.
+     ==================================================================== */
+  .screen {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    border-radius: 22px;
+    padding: 26px;               /* lamphus-tjocklek */
+    background:
+      linear-gradient(180deg, #123c43, #0c2f37);
+    box-shadow:
+      0 30px 70px -30px rgba(0,0,0,0.7),
+      inset 0 0 0 1px rgba(255, 232, 189, 0.08);
+    overflow: hidden;
+  }
+
+  /* --- Marquee-lamporna: fyra remsor runt kanten --- */
+  .marquee-strip {
+    position: absolute;
+    background-repeat: repeat;
+    pointer-events: none;
+    z-index: 3;
+    filter: drop-shadow(0 0 5px var(--lamp-glow));
+  }
+  .marquee-strip--h {
+    left: 26px; right: 26px; height: 13px;
+    background-image: radial-gradient(circle at 6.5px 6.5px, var(--lamp-core) 0 2.4px, var(--lamp-glow) 2.4px 4.6px, rgba(255,232,189,0.12) 4.6px 6px, transparent 6.2px);
+    background-size: 26px 13px;
+  }
+  .marquee-strip--v {
+    top: 26px; bottom: 26px; width: 13px;
+    background-image: radial-gradient(circle at 6.5px 6.5px, var(--lamp-core) 0 2.4px, var(--lamp-glow) 2.4px 4.6px, rgba(255,232,189,0.12) 4.6px 6px, transparent 6.2px);
+    background-size: 13px 26px;
+  }
+  .marquee-strip.top { top: 6.5px; }
+  .marquee-strip.bottom { bottom: 6.5px; }
+  .marquee-strip.left { left: 6.5px; }
+  .marquee-strip.right { right: 6.5px; }
+
+  /* --- Inre scenytan (bakom lamporna) --- */
+  .stage {
+    position: absolute;
+    inset: 26px;
+    border-radius: 12px;
+    background:
+      radial-gradient(900px 520px at 50% 120%, rgba(212,104,46,0.10), transparent 60%),
+      linear-gradient(180deg, #0b2f37 0%, #0a2930 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(14px, 2.6vw, 30px);
+  }
+
+  /* --- Rymd-motiv (ringad planet + 4-uddiga stjärnor) --- */
+  .space-motif { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.9; }
+
+  .stage > *:not(.space-motif) { position: relative; z-index: 1; }
+
+  /* --- Toppzon: fråga + spelnamn i hörnet --- */
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    justify-content: space-between;
+  }
+  .gamename {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--wood-light);
+    text-align: right;
+    flex: 0 0 auto;
+    text-transform: uppercase;
+  }
+  .gamename small { display:block; font-family: var(--font-ui); font-weight:600; font-size:0.62em; letter-spacing:0.22em; color: var(--creme-dim); margin-top: 4px; }
+
+  .q-eyebrow {
+    font-size: clamp(0.6rem, 1.1vw, 0.75rem);
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin: 0 0 8px;
+  }
+  .question {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.1rem, 3.1vw, 2.3rem);
+    line-height: 1.08;
+    margin: 0;
+    color: var(--creme);
+    max-width: 15ch;
+    text-wrap: balance;
+  }
+
+  /* --- Mitten: hästsko-vizen --- */
+  .viz { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .viz svg { width: 100%; height: 100%; display: block; }
+
+  /* ====================== Hästsko-SVG-stilar ====================== */
+  .hs-table { fill: none; stroke: url(#woodGrad); stroke-linecap: round; }
+  .hs-table-core { fill: none; stroke: url(#woodCore); stroke-linecap: round; }
+  .hs-tv-screen { fill: #061b20; stroke: var(--wood-light); stroke-width: 2.5; }
+  .hs-tv-glow { fill: var(--orange); opacity: 0.5; }
+  .hs-tv-stand { fill: var(--wood); }
+  .seat-base { fill: url(#seatGrad); stroke: rgba(242,231,207,0.35); stroke-width: 2; }
+  .seat-num { fill: var(--bg); font-family: var(--font-display); font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+  .seat-label { fill: var(--creme-dim); font-family: var(--font-ui); font-weight: 600; font-size: 13px; text-anchor: middle; letter-spacing: 0.1em; }
+  .seat-ring {
+    fill: none;
+    stroke: rgba(242,231,207,0.16);
+    stroke-width: 6;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .seat-ring.v-nej { stroke: var(--vote-nej); filter: drop-shadow(0 0 9px var(--vote-nej)); }
+  .seat-ring.v-kanske { stroke: var(--vote-kanske); filter: drop-shadow(0 0 9px var(--vote-kanske)); }
+  .seat-ring.v-ja { stroke: var(--vote-ja); filter: drop-shadow(0 0 9px var(--vote-ja)); }
+  .seat-spot { fill: var(--lamp-glow); opacity: 0; }
+
+  /* ====================== Signatur 1: VOTE ignite ====================== */
+  /* Default (och reduced-motion): vilo-/slutläge syns direkt. */
+  .screen--vote .seat-ring.lit { opacity: 1; transform: scale(1); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--vote .seat-ring.lit { opacity: 0; transform: scale(0.82); }
+    .screen--vote.playing .seat-ring.lit {
+      animation: igniteLamp 420ms var(--ease-out) forwards;
+    }
+    .screen--vote.playing .seat-g:nth-of-type(1) .seat-ring.lit { animation-delay: 60ms; }
+    .screen--vote.playing .seat-g:nth-of-type(2) .seat-ring.lit { animation-delay: 190ms; }
+    .screen--vote.playing .seat-g:nth-of-type(3) .seat-ring.lit { animation-delay: 300ms; }
+    .screen--vote.playing .seat-g:nth-of-type(4) .seat-ring.lit { animation-delay: 150ms; }
+    .screen--vote.playing .seat-g:nth-of-type(5) .seat-ring.lit { animation-delay: 420ms; }
+    .screen--vote.playing .seat-g:nth-of-type(6) .seat-ring.lit { animation-delay: 540ms; }
+  }
+  @keyframes igniteLamp {
+    0%   { opacity: 0; transform: scale(0.82); }
+    55%  { opacity: 1; transform: scale(1.12); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Röst-tally längst ner på vote-skärmen */
+  .tally { display: flex; justify-content: center; gap: clamp(10px, 2.4vw, 26px); margin-top: 6px; }
+  .tally__item { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: 0.04em; }
+  .tally__dot { width: 15px; height: 15px; border-radius: 50%; }
+  .tally__dot.nej { background: var(--vote-nej); box-shadow: 0 0 10px var(--vote-nej); }
+  .tally__dot.kanske { background: var(--vote-kanske); box-shadow: 0 0 10px var(--vote-kanske); }
+  .tally__dot.ja { background: var(--vote-ja); box-shadow: 0 0 10px var(--vote-ja); }
+  .tally__n { font-family: var(--font-display); font-weight: 700; }
+
+  /* ====================== Signatur 2: SPEAK ====================== */
+  /* Mörkande sjok ovanpå hästskon + stort live-transkript. */
+  .dim-veil {
+    position: absolute; inset: 0; z-index: 2;
+    background: radial-gradient(60% 60% at 50% 42%, rgba(10,41,48,0.55), rgba(8,27,32,0.93));
+    opacity: 1;                    /* default/reduced-motion: visas */
+  }
+  .speak-wrap { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(18px, 3vw, 40px); }
+  .speak-who { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .speak-who__chip {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 1.3rem;
+    color: var(--bg); background: var(--wood-light);
+    box-shadow: 0 0 0 4px rgba(255,232,189,0.25), 0 0 26px var(--lamp-glow);
+  }
+  .speak-who__txt { font-size: 0.8rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--creme-dim); }
+  .speak-who__txt b { display:block; font-family: var(--font-display); font-size: 1.05rem; letter-spacing: 0.02em; color: var(--creme); text-transform: none; }
+  .mic-live { display:inline-flex; align-items:center; gap:7px; margin-left: auto; font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color: var(--orange); }
+  .mic-live::before { content:""; width:9px; height:9px; border-radius:50%; background: var(--orange); box-shadow: 0 0 10px var(--orange); }
+
+  .transcript {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(1.15rem, 3.4vw, 2.5rem);
+    line-height: 1.22;
+    color: var(--creme);
+    margin: 0;
+    max-width: 24ch;
+    text-shadow: 0 2px 18px rgba(0,0,0,0.55);
+  }
+  .transcript .w { opacity: 1; } /* default/reduced-motion */
+
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--speak .dim-veil { opacity: 0; transition: opacity 280ms var(--ease-out); }
+    .screen--speak.playing .dim-veil { opacity: 1; }
+    .screen--speak .transcript .w { opacity: 0.12; }
+    .screen--speak.playing .transcript .w {
+      animation: wordIn 300ms var(--ease-out) forwards;
+    }
+    .screen--speak .speak-who__chip { transform: scale(0.9); opacity: 0.6; }
+    .screen--speak.playing .speak-who__chip { transition: transform 320ms var(--ease-out), opacity 320ms var(--ease-out); transform: scale(1); opacity: 1; }
+  }
+  @keyframes wordIn { from { opacity: 0.12; } to { opacity: 1; } }
+
+  /* Aktiv plats bakom slöjan: puls-glow */
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--speak.playing .seat-g.active .seat-spot { animation: seatPulse 1.8s var(--ease-in-out) infinite; }
+  }
+  .screen--speak .seat-g.active .seat-spot { opacity: 0.5; }
+  @keyframes seatPulse { 0%,100% { opacity: 0.28; } 50% { opacity: 0.6; } }
+
+  /* ====================== Signatur 3: POST-TUR pratbubbla ====================== */
+  .bubble-fo { overflow: visible; }
+  .bubble {
+    background: var(--creme);
+    color: #23140a;
+    border-radius: 16px;
+    padding: 13px 16px;
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.34;
+    box-shadow: 0 16px 30px -14px rgba(0,0,0,0.6);
+    position: relative;
+    transform-origin: var(--bubble-origin, left bottom);
+  }
+  .bubble b { color: var(--orange); }
+  .bubble__tail { position: absolute; width: 16px; height: 16px; background: var(--creme); transform: rotate(45deg); }
+
+  /* default/reduced-motion: dockad bubbla syns */
+  .bubble-g { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--post .bubble-g { opacity: 0; }
+    .screen--post.playing .bubble-g {
+      animation: dockBubble 460ms var(--ease-drawer) forwards;
+    }
+    .screen--post.playing .bubble-g:nth-of-type(2) { animation-delay: 140ms; }
+  }
+  @keyframes dockBubble {
+    0%   { opacity: 0; transform: translateY(-26px) scale(0.92); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ====================== Attract ====================== */
+  .attract { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 18px; }
+  .attract__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 8vw, 5.4rem);
+    line-height: 0.96;
+    margin: 0;
+    color: var(--creme);
+    letter-spacing: -0.01em;
+  }
+  .attract__name .accent { color: var(--orange); display:block; }
+  .attract__tag { color: var(--creme-dim); font-size: clamp(0.85rem, 2vw, 1.15rem); letter-spacing: 0.06em; max-width: 34ch; margin: 0; }
+  .attract__cta {
+    margin-top: 12px;
+    font-family: var(--font-ui); font-weight: 600;
+    font-size: clamp(0.8rem, 1.8vw, 1.05rem);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--bg);
+    background: var(--orange);
+    padding: 14px 30px; border-radius: 999px;
+    box-shadow: 0 0 34px rgba(212,104,46,0.55);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--attract.playing .attract__cta { animation: ctaBreath 2.6s var(--ease-in-out) infinite; }
+  }
+  @keyframes ctaBreath { 0%,100% { transform: scale(1); box-shadow: 0 0 28px rgba(212,104,46,0.45);} 50% { transform: scale(1.035); box-shadow: 0 0 46px rgba(212,104,46,0.7);} }
+
+  /* ====================== Assess (experten tänker) ====================== */
+  .assess { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 26px; text-align:center; }
+  .assess__orb { position: relative; width: clamp(90px, 16vw, 150px); aspect-ratio: 1; }
+  .assess__orb svg { width:100%; height:100%; }
+  .assess__txt { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.1rem, 2.6vw, 1.7rem); color: var(--creme); margin:0; }
+  .assess__sub { color: var(--creme-dim); margin: 0; letter-spacing: 0.04em; }
+  .orb-ring { fill:none; stroke: var(--orange); stroke-width: 4; stroke-linecap: round; opacity: 0.9; }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--assess.playing .orb-ring { animation: orbSpin 1.1s linear infinite; transform-origin: center; }
+  }
+  @keyframes orbSpin { to { transform: rotate(360deg); } }
+
+  /* ====================== Facit ====================== */
+  .facit { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 18px; text-align:center; }
+  .facit__badge {
+    font-size: 0.72rem; letter-spacing: 0.26em; text-transform: uppercase; color: var(--bg);
+    background: var(--vote-ja); padding: 6px 16px; border-radius: 999px; font-weight: 700;
+    box-shadow: 0 0 22px rgba(54,179,74,0.6);
+  }
+  .facit__answer { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.6rem, 5vw, 3.4rem); color: var(--creme); margin: 0; line-height: 1.04; max-width: 20ch; }
+  .facit__answer .hl { color: var(--vote-ja); }
+  .facit__src { color: var(--creme-dim); font-size: 0.9rem; max-width: 46ch; margin: 0; }
+
+  /* ====================== Feedback (per person) ====================== */
+  .fb-grid { flex:1; display:grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 1.4vw, 16px); align-content: center; }
+  .fb-card {
+    background: rgba(242,231,207,0.05);
+    border: 1px solid rgba(242,231,207,0.14);
+    border-radius: 14px;
+    padding: clamp(10px, 1.6vw, 16px);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .fb-card__head { display:flex; align-items:center; gap: 10px; }
+  .fb-card__chip { width: 30px; height: 30px; border-radius: 50%; display:grid; place-items:center; font-family: var(--font-display); font-weight:700; color: var(--bg); background: var(--wood-light); font-size: 0.95rem; }
+  .fb-card__vote { margin-left:auto; width: 11px; height: 11px; border-radius: 50%; }
+  .fb-card__vote.nej { background: var(--vote-nej); } .fb-card__vote.kanske { background: var(--vote-kanske); } .fb-card__vote.ja { background: var(--vote-ja); }
+  .fb-card__txt { font-size: clamp(0.72rem, 1.15vw, 0.9rem); color: var(--creme); line-height: 1.4; }
+  .fb-card__txt b { color: var(--wood-light); }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--feedback .fb-card { opacity: 0; transform: translateY(10px); }
+    .screen--feedback.playing .fb-card { animation: cardIn 360ms var(--ease-out) forwards; }
+    .screen--feedback.playing .fb-card:nth-child(1){animation-delay:40ms}
+    .screen--feedback.playing .fb-card:nth-child(2){animation-delay:100ms}
+    .screen--feedback.playing .fb-card:nth-child(3){animation-delay:160ms}
+    .screen--feedback.playing .fb-card:nth-child(4){animation-delay:220ms}
+    .screen--feedback.playing .fb-card:nth-child(5){animation-delay:280ms}
+    .screen--feedback.playing .fb-card:nth-child(6){animation-delay:340ms}
+  }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+  /* ====================== Reveal (före→efter delta) ====================== */
+  .reveal { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: clamp(14px, 2.6vw, 30px); text-align:center; }
+  .reveal__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.2rem, 3vw, 2rem); margin:0; color: var(--creme); }
+  .delta-rows { display:flex; flex-direction:column; gap: 16px; width: min(78%, 620px); }
+  .delta-row { display:flex; align-items:center; gap: 14px; }
+  .delta-row__lab { width: 68px; text-align:right; font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--creme-dim); flex: 0 0 auto; }
+  .bar { flex:1; height: 26px; border-radius: 999px; background: rgba(242,231,207,0.08); position: relative; overflow: hidden; }
+  .bar__fill { position:absolute; inset: 0 auto 0 0; border-radius: 999px; width: var(--w, 40%); }
+  .bar__fill.fore { background: linear-gradient(90deg, var(--vote-nej), var(--vote-kanske)); }
+  .bar__fill.efter { background: linear-gradient(90deg, var(--vote-kanske), var(--vote-ja)); }
+  .delta-row__pct { width: 54px; text-align:left; font-family: var(--font-display); font-weight:700; color: var(--creme); flex:0 0 auto; }
+  .delta-badge {
+    font-family: var(--font-display); font-weight:700; font-size: clamp(1.4rem, 4vw, 2.6rem);
+    color: var(--vote-ja);
+  }
+  .delta-badge small { display:block; font-family: var(--font-ui); font-weight:600; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--creme-dim); }
+  @media (prefers-reduced-motion: no-preference) {
+    .screen--reveal .bar__fill { width: 0; }
+    .screen--reveal.playing .bar__fill { transition: width 900ms var(--ease-out); width: var(--w); }
+    .screen--reveal.playing .bar__fill.efter { transition-delay: 280ms; }
+  }
+
+  /* ---------- Fot ---------- */
+  .doc-foot { max-width: 1120px; margin: 40px auto 0; color: var(--creme-dim); font-size: 0.85rem; text-align:center; border-top: 1px solid rgba(242,231,207,0.1); padding-top: 24px; }
+
+  @media (max-width: 560px) {
+    .fb-grid { grid-template-columns: 1fr 1fr; }
+    .case__signature { display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="doc-head">
+    <p class="doc-kicker">2047 Science Center · Designförslag A</p>
+    <h1 class="doc-title">Utmana experten — <span class="accent">Marquee</span></h1>
+    <p class="doc-lead">Den centrala game-show-skärmen. En varm studio i rymden: petrol &amp; björkträ, en hästsko av platser som lyser i röstfärg, och ett live-transkript som tar över rummet när någon tänker högt. Alla nyckel-states nedan, var och en i 16:9 med marquee-ram.</p>
+    <div class="legend">
+      <span><i class="l-nej"></i> NEJ</span>
+      <span><i class="l-kanske"></i> KANSKE</span>
+      <span><i class="l-ja"></i> JA</span>
+    </div>
+  </header>
+
+  <!-- ============ 1. ATTRACT ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Attract</span>
+      <h2 class="case__name">Vänteläge</h2>
+      <p class="case__note">Självgående loop tills en grupp sätter sig.</p>
+    </div>
+    <div class="screen screen--attract" data-anim>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="attract">
+          <h3 class="attract__name">UTMANA<span class="accent">EXPERTEN</span></h3>
+          <p class="attract__tag">Ta ställning. Möt verkligheten. Tänk om.</p>
+          <div class="attract__cta">Tryck för att börja</div>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 2. PRESENT / FRÅGA ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Present</span>
+      <h2 class="case__name">Frågan ställs</h2>
+      <p class="case__note">Fråga överst, spelnamn i hörnet, hästskon i mitten.</p>
+    </div>
+    <div class="screen screen--present" data-anim>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div>
+            <p class="q-eyebrow">Omgång 1 · Arbetslivet</p>
+            <h3 class="question">Måste man plugga vidare för att få ett bra jobb?</h3>
+          </div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="viz" data-hs='{"screen":"present"}'></div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. VOTE (signatur) ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Vote</span>
+      <h2 class="case__name">Rösten tänder hästskon</h2>
+      <p class="case__note">Varje plats lyser i sin röstfärg — skärm + fysisk LED samtidigt.</p>
+      <span class="case__signature">Signatur</span>
+      <button class="replay" data-replay>Spela om</button>
+    </div>
+    <div class="screen screen--vote" data-anim data-loop>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div>
+            <p class="q-eyebrow">Rösta nu · före</p>
+            <h3 class="question">Måste man plugga vidare för att få ett bra jobb?</h3>
+          </div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="viz" data-hs='{"screen":"vote"}'></div>
+        <div class="tally">
+          <span class="tally__item"><span class="tally__dot nej"></span><span class="tally__n">3</span> Nej</span>
+          <span class="tally__item"><span class="tally__dot kanske"></span><span class="tally__n">2</span> Kanske</span>
+          <span class="tally__item"><span class="tally__dot ja"></span><span class="tally__n">1</span> Ja</span>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. SPEAK / MOTIVERING (signatur) ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Speak round</span>
+      <h2 class="case__name">Live-transkriptet tar över</h2>
+      <p class="case__note">Bakgrunden mörknar, platsen highlightas, det som sägs skrivs stort.</p>
+      <span class="case__signature">Signatur</span>
+      <button class="replay" data-replay>Spela om</button>
+    </div>
+    <div class="screen screen--speak" data-anim data-loop>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="viz" data-hs='{"screen":"speak","active":2}'></div>
+      </div>
+      <div class="dim-veil"></div>
+      <div class="speak-wrap">
+        <div class="speak-who">
+          <span class="speak-who__chip">2</span>
+          <span class="speak-who__txt">Plats 2 har ordet<b>15 s · tänker högt</b></span>
+          <span class="mic-live">Mik på</span>
+        </div>
+        <p class="transcript" data-transcript>Min morbror blev kock utan att plugga vidare — han lärde sig allt på riktigt, i ett kök.</p>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. POST-TUR / PRATBUBBLA (signatur) ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Efter tur</span>
+      <h2 class="case__name">Svaret dockar som pratbubbla</h2>
+      <p class="case__note">Textblocket animeras ner och fastnar bredvid platsen.</p>
+      <span class="case__signature">Signatur</span>
+      <button class="replay" data-replay>Spela om</button>
+    </div>
+    <div class="screen screen--post" data-anim data-loop>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div>
+            <p class="q-eyebrow">Tänk högt · varv 1</p>
+            <h3 class="question">Måste man plugga vidare för att få ett bra jobb?</h3>
+          </div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="viz" data-hs='{"screen":"post","bubbles":[{"seat":2,"vote":"nej","text":"Min morbror blev <b>kock</b> utan att plugga vidare."},{"seat":4,"vote":"ja","text":"Men läkare måste ju ha utbildning?"}]}'></div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 6. ASSESS ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Assess</span>
+      <h2 class="case__name">Experten tänker</h2>
+      <p class="case__note">Latensmask medan AI:n bedömer per person.</p>
+    </div>
+    <div class="screen screen--assess" data-anim data-loop>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="assess">
+          <div class="assess__orb">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="34" fill="none" stroke="rgba(242,231,207,0.12)" stroke-width="4"/>
+              <circle class="orb-ring" cx="50" cy="50" r="34" stroke-dasharray="54 160"/>
+              <circle cx="50" cy="50" r="7" fill="var(--orange)"/>
+            </svg>
+          </div>
+          <div>
+            <p class="assess__txt">Experten läser era svar…</p>
+            <p class="assess__sub">Väger ihop vad var och en tänkte</p>
+          </div>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 7. FACIT ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Facit</span>
+      <h2 class="case__name">Rätt svar</h2>
+      <p class="case__note">Facit först — rätt-svarets färg tänds även på LED-stripen.</p>
+    </div>
+    <div class="screen screen--facit" data-anim>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div><p class="q-eyebrow">Facit</p></div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="facit">
+          <span class="facit__badge">Så ser det ut i verkligheten</span>
+          <h3 class="facit__answer">Nej — <span class="hl">de flesta vägar</span> leder till bra jobb.</h3>
+          <p class="facit__src">Yrkesutbildning, lärling och arbete direkt leder ofta till trygga, välbetalda jobb. Högskola är en väg av flera — inte den enda.</p>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 8. FEEDBACK (per person) ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Feedback</span>
+      <h2 class="case__name">Så här tänkte ni</h2>
+      <p class="case__note">Konstruktiv AI-text per plats — band + motivering.</p>
+    </div>
+    <div class="screen screen--feedback" data-anim>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div><p class="q-eyebrow">Återkoppling · per plats</p></div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="fb-grid">
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">1</span><span class="fb-card__vote kanske"></span></div><p class="fb-card__txt"><b>Stark poäng.</b> Du vägde in både lön och trivsel — testa att nämna konkreta yrken nästa gång.</p></div>
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">2</span><span class="fb-card__vote nej"></span></div><p class="fb-card__txt"><b>Bra exempel.</b> Kocken visar din poäng. Håll koll på att vissa yrken ändå kräver utbildning.</p></div>
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">3</span><span class="fb-card__vote nej"></span></div><p class="fb-card__txt"><b>Tydligt resonemang.</b> Du skilde på "bra jobb" och "roligt jobb" — fint nyanserat.</p></div>
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">4</span><span class="fb-card__vote ja"></span></div><p class="fb-card__txt"><b>Viktig invändning.</b> Läkare behöver utbildning — men fundera på hur många vägar som finns.</p></div>
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">5</span><span class="fb-card__vote kanske"></span></div><p class="fb-card__txt"><b>Öppet sinne.</b> Du höll frågan öppen — nu har du fler fakta att luta dig mot.</p></div>
+          <div class="fb-card"><div class="fb-card__head"><span class="fb-card__chip">6</span><span class="fb-card__vote nej"></span></div><p class="fb-card__txt"><b>Modigt svar.</b> Du stod för din åsikt. Prova att koppla den till något du själv vill bli.</p></div>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <!-- ============ 9. REVEAL (före→efter) ============ -->
+  <section class="case">
+    <div class="case__label">
+      <span class="case__step">Reveal</span>
+      <h2 class="case__name">Före → efter</h2>
+      <p class="case__note">Glappet = effekten. Svep + fanfar vid reveal.</p>
+      <button class="replay" data-replay>Spela om</button>
+    </div>
+    <div class="screen screen--reveal" data-anim>
+      <div class="stage">
+        <div class="space-motif" data-motif></div>
+        <div class="topbar">
+          <div><p class="q-eyebrow">Tänkte ni om?</p></div>
+          <div class="gamename">Utmana<br>experten<small>2047</small></div>
+        </div>
+        <div class="reveal">
+          <h3 class="reveal__title">Gruppens syn förändrades</h3>
+          <div class="delta-rows">
+            <div class="delta-row">
+              <span class="delta-row__lab">Före</span>
+              <span class="bar"><span class="bar__fill fore" style="--w:34%"></span></span>
+              <span class="delta-row__pct">34%</span>
+            </div>
+            <div class="delta-row">
+              <span class="delta-row__lab">Efter</span>
+              <span class="bar"><span class="bar__fill efter" style="--w:78%"></span></span>
+              <span class="delta-row__pct">78%</span>
+            </div>
+          </div>
+          <div class="delta-badge">+44<small>attityd-delta</small></div>
+        </div>
+      </div>
+      <div class="marquee-strip marquee-strip--h top" data-lamp></div>
+      <div class="marquee-strip marquee-strip--h bottom" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v left" data-lamp></div>
+      <div class="marquee-strip marquee-strip--v right" data-lamp></div>
+    </div>
+  </section>
+
+  <footer class="doc-foot">
+    Förslag A · Marquee — rent designförslag, ingen källkod rörd. Palett &amp; röstfärger låsta; typografi, motion &amp; layout formade inom vibe:n (Emil Kowalski-ramen).
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- Rymd-motiv: ringad planet + 4-uddiga stjärnor ---- */
+  var star = function (x, y, s, o) {
+    return '<path transform="translate(' + x + ',' + y + ') scale(' + s + ')" d="M0,-10 L2.4,-2.4 L10,0 L2.4,2.4 L0,10 L-2.4,2.4 L-10,0 L-2.4,-2.4 Z" fill="var(--orange)" opacity="' + o + '"/>';
+  };
+  var motifSVG =
+    '<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">' +
+      '<g opacity="0.5">' +
+        '<circle cx="878" cy="92" r="34" fill="none" stroke="var(--orange)" stroke-width="2.5"/>' +
+        '<ellipse cx="878" cy="92" rx="60" ry="17" fill="none" stroke="var(--wood-light)" stroke-width="2" transform="rotate(-22 878 92)"/>' +
+      '</g>' +
+      star(120, 70, 1.0, 0.65) + star(250, 150, 0.6, 0.4) + star(760, 420, 0.8, 0.45) +
+      star(90, 420, 0.7, 0.4) + star(930, 300, 0.6, 0.35) + star(520, 60, 0.55, 0.35) +
+    '</svg>';
+  document.querySelectorAll('[data-motif]').forEach(function (el) { el.innerHTML = motifSVG; });
+
+  /* ---- Hästsko-illustration (plan-vy; TV längst fram) ---- */
+  // Platser: vänster arm uppifrån 1,2 · botten (stängda kröken, överst i bild) 3,4 · höger arm nerifrån-upp 5,6
+  var SEATS = [
+    { n: 1, x: 212, y: 250, side: "left"  },
+    { n: 2, x: 212, y: 400, side: "left"  },
+    { n: 3, x: 382, y: 128, side: "top"   },
+    { n: 4, x: 618, y: 128, side: "top"   },
+    { n: 5, x: 788, y: 400, side: "right" },
+    { n: 6, x: 788, y: 250, side: "right" }
+  ];
+  var VOTES = { 1: "kanske", 2: "nej", 3: "nej", 4: "ja", 5: "kanske", 6: "nej" };
+  var R = 40;
+
+  function seatGroup(s, opts) {
+    var lit = "", active = "";
+    if (opts.screen === "vote") lit = " lit v-" + VOTES[s.n];
+    if (opts.screen === "post") lit = ""; // ringar neutrala; bubblor bär rösten
+    if (opts.active === s.n) active = " active";
+    var spotOpacity = (opts.active === s.n) ? 0.5 : 0;
+    return '' +
+      '<g class="seat-g' + active + '" data-seat="' + s.n + '">' +
+        '<circle class="seat-spot" cx="' + s.x + '" cy="' + s.y + '" r="' + (R + 26) + '" style="opacity:' + spotOpacity + '"/>' +
+        '<circle class="seat-ring' + lit + '" cx="' + s.x + '" cy="' + s.y + '" r="' + (R + 9) + '"/>' +
+        '<circle class="seat-base" cx="' + s.x + '" cy="' + s.y + '" r="' + R + '"/>' +
+        '<text class="seat-num" x="' + s.x + '" y="' + (s.y + 1) + '" font-size="34">' + s.n + '</text>' +
+        '<text class="seat-label" x="' + s.x + '" y="' + (s.y + R + 22) + '">PLATS ' + s.n + '</text>' +
+      '</g>';
+  }
+
+  function bubbleGroup(b) {
+    var s = SEATS.filter(function (x) { return x.n === b.seat; })[0];
+    if (!s) return "";
+    var w = 250, h = 96, bx, by, origin, tailX, tailY;
+    if (s.side === "left")  { bx = s.x + R + 26;  by = s.y - h / 2;    origin = "left center";  tailX = bx - 7;      tailY = s.y - 6; }
+    else if (s.side === "right") { bx = s.x - R - 26 - w; by = s.y - h / 2; origin = "right center"; tailX = bx + w - 7; tailY = s.y - 6; }
+    else { bx = s.x - w / 2; by = s.y + R + 24; origin = "center top"; tailX = s.x - 6; tailY = by - 2; }
+    return '' +
+      '<g class="bubble-g">' +
+        '<rect class="bubble__tail" x="' + tailX + '" y="' + tailY + '" width="14" height="14" rx="3" transform="rotate(45 ' + (tailX + 7) + ' ' + (tailY + 7) + ')" fill="var(--creme)"/>' +
+        '<foreignObject class="bubble-fo" x="' + bx + '" y="' + by + '" width="' + w + '" height="' + h + '">' +
+          '<div xmlns="http://www.w3.org/1999/xhtml" class="bubble" style="--bubble-origin:' + origin + '">' +
+            '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:var(--vote-' + b.vote + ');box-shadow:0 0 8px var(--vote-' + b.vote + ')"></span>' +
+            b.text +
+          '</div>' +
+        '</foreignObject>' +
+      '</g>';
+  }
+
+  function horseshoe(opts) {
+    var seats = SEATS.map(function (s) { return seatGroup(s, opts); }).join("");
+    var bubbles = (opts.bubbles || []).map(bubbleGroup).join("");
+    // U-bordet: öppning nedåt (mot TV:n längst fram)
+    var tablePath = "M 212 430 L 212 220 Q 212 128 304 128 L 696 128 Q 788 128 788 220 L 788 430";
+    return '' +
+      '<svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
+        '<defs>' +
+          '<linearGradient id="woodGrad" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="var(--wood-light)"/><stop offset="1" stop-color="var(--wood)"/>' +
+          '</linearGradient>' +
+          '<linearGradient id="woodCore" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="#9c6a34"/><stop offset="1" stop-color="#6f4620"/>' +
+          '</linearGradient>' +
+          '<radialGradient id="seatGrad" cx="0.4" cy="0.35" r="0.8">' +
+            '<stop offset="0" stop-color="#e2b877"/><stop offset="1" stop-color="var(--wood-light)"/>' +
+          '</radialGradient>' +
+        '</defs>' +
+        // bordsband (två lager för djup)
+        '<path class="hs-table" d="' + tablePath + '" stroke-width="76"/>' +
+        '<path class="hs-table-core" d="' + tablePath + '" stroke-width="54"/>' +
+        // TV längst fram (i öppningen, nedtill)
+        '<g>' +
+          '<rect class="hs-tv-stand" x="488" y="516" width="24" height="20" rx="3"/>' +
+          '<rect class="hs-tv-stand" x="456" y="534" width="88" height="8" rx="4"/>' +
+          '<rect class="hs-tv-screen" x="412" y="452" width="176" height="66" rx="8"/>' +
+          '<rect class="hs-tv-glow" x="424" y="462" width="152" height="46" rx="5"/>' +
+          '<text x="500" y="489" font-family="var(--font-ui)" font-size="15" font-weight="700" fill="var(--creme)" text-anchor="middle" letter-spacing="2">TV</text>' +
+        '</g>' +
+        seats +
+        bubbles +
+      '</svg>';
+  }
+
+  document.querySelectorAll('[data-hs]').forEach(function (el) {
+    var opts = {};
+    try { opts = JSON.parse(el.getAttribute('data-hs')); } catch (e) {}
+    el.innerHTML = horseshoe(opts);
+  });
+
+  /* ---- Live-transkript: dela upp i ord (för stagger-reveal) ---- */
+  document.querySelectorAll('[data-transcript]').forEach(function (el) {
+    var words = el.textContent.split(' ');
+    el.innerHTML = words.map(function (w, i) {
+      return '<span class="w" style="transition-delay:' + (i * 55) + 'ms;animation-delay:' + (i * 55) + 'ms">' + w + '</span>';
+    }).join(' ');
+  });
+
+  /* ---- Marquee-chase (bara om motion tillåts) ---- */
+  if (!reduce) {
+    var style = document.createElement('style');
+    style.textContent =
+      '@keyframes chaseH { to { background-position-x: 26px; } }' +
+      '@keyframes chaseV { to { background-position-y: 26px; } }' +
+      '.marquee-strip--h { animation: chaseH 900ms linear infinite; }' +
+      '.marquee-strip--v { animation: chaseV 900ms linear infinite; }' +
+      '.marquee-strip.bottom, .marquee-strip.right { animation-direction: reverse; }';
+    document.head.appendChild(style);
+  }
+
+  /* ---- Spela animationer när skärmen kommer in i vy ---- */
+  var play = function (screen) {
+    screen.classList.remove('playing');
+    // tvinga reflow så animationer startar om
+    void screen.offsetWidth;
+    screen.classList.add('playing');
+  };
+
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) play(e.target);
+        else e.target.classList.remove('playing');
+      });
+    }, { threshold: 0.45 });
+    document.querySelectorAll('.screen[data-anim]').forEach(function (s) { io.observe(s); });
+  } else {
+    document.querySelectorAll('.screen[data-anim]').forEach(function (s) { s.classList.add('playing'); });
+  }
+
+  /* ---- Replay-knappar ---- */
+  document.querySelectorAll('[data-replay]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var screen = btn.closest('.case').querySelector('.screen');
+      if (screen) play(screen);
+    });
+  });
+
+  /* ---- Loopa signatur-skärmarna så man ser hela förloppet upprepas ---- */
+  if (!reduce) {
+    document.querySelectorAll('.screen[data-loop]').forEach(function (s) {
+      setInterval(function () {
+        var r = s.getBoundingClientRect();
+        var inView = r.top < window.innerHeight * 0.75 && r.bottom > window.innerHeight * 0.25;
+        if (inView) play(s);
+      }, 4200);
+    });
+  }
+})();
+</script>
+</body>
+</html>

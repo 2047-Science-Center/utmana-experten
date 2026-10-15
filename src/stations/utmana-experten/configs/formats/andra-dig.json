@@ -1,0 +1,14 @@
+{
+  "id": "andra-dig",
+  "namn": "Ändra dig",
+  "fraga": "Skulle du kunna tänka dig ett yrke inom industrin?",
+  "facit": "ja",
+  "steps": [
+    { "typ": "present", "contentId": "fraga", "source": "screen" },
+    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "fore" },
+    { "typ": "clip", "contentId": "verklighet", "rubrik": "Så ser det faktiskt ut i dag" },
+    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "efter" },
+    { "typ": "reveal", "kalla": "delta" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

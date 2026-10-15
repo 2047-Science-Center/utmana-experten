@@ -1,0 +1,19 @@
+{
+  "id": "utmana-tyck-till",
+  "inputMode": "multi-speaker",
+  "model": "gpt-5-mini",
+  "reasoningEffort": "low",
+  "maxOutputTokens": 500,
+  "jsonMode": true,
+  "instructionsFile": "instructions/utmana.sv.txt",
+  "outputSchema": {
+    "band": "string (Stark|Godkänd|Svag)",
+    "svar_text": "string"
+  },
+  "speak": {
+    "enabled": false,
+    "voiceId": "sanna",
+    "modelId": "eleven_multilingual_v2",
+    "voiceSettings": { "stability": 0.4, "similarity_boost": 0.7 }
+  }
+}

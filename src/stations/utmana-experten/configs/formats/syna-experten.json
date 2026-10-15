@@ -1,0 +1,18 @@
+{
+  "id": "syna-experten",
+  "namn": "Syna experten",
+  "riskfyllt": true,
+  "fraga": "En 'expert' påstår: AI kommer ta de flesta jobb inom tio år. Håller ni med?",
+  "facit": "kanske",
+  "steps": [
+    { "typ": "present", "contentId": "pastaende", "source": "screen" },
+    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "fore" },
+    { "typ": "speak_round", "sekunder": 15 },
+    { "typ": "assess", "configId": "utmana-syna-experten", "perPerson": true },
+    { "typ": "clip", "contentId": "granskning", "rubrik": "Så håller påståendet för en granskning" },
+    { "typ": "facit", "contentId": "facit", "ordning": "tanke-forst", "ratt": "kanske" },
+    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "efter" },
+    { "typ": "reveal", "kalla": "delta" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

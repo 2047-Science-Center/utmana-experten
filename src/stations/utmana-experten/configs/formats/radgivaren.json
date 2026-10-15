@@ -1,0 +1,13 @@
+{
+  "id": "radgivaren",
+  "namn": "Rådgivaren",
+  "fraga": "En kompis tvekar mellan en säker lärlingsplats och en osäker drömutbildning. Vad råder ni?",
+  "steps": [
+    { "typ": "present", "contentId": "dilemma", "source": "screen" },
+    { "typ": "speak_round", "sekunder": 20 },
+    { "typ": "assess", "configId": "utmana-radgivaren", "perPerson": true },
+    { "typ": "feedback", "form": "text-per-person" },
+    { "typ": "clip", "contentId": "vad-hande", "rubrik": "Så gick det för en som stod inför samma val" }
+  ],
+  "speak": { "enabled": false, "voiceId": "sanna" }
+}

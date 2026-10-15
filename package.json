@@ -1,0 +1,35 @@
+{
+  "name": "utmana-experten",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stationen Utmana experten (flerpersons röst-/AI-bedömning + LED/ljud-rigg) — 2047 Science Center",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "build:kiosk": "vue-tsc --noEmit && VITE_ASSESS_URL= vite build",
+    "preview": "vite preview",
+    "gateway": "node server/index.js",
+    "brain": "python3 tools/hjarna-stubb.py",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.1",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "openai": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.1.10"
+  }
+}
