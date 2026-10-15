@@ -30,12 +30,15 @@ setdev() { # typ(input|output)  namn
       || die "kunde inte sätta $1 '$2' (kolla namnet med: tools/audio.sh list)"
   else
     command -v pactl >/dev/null 2>&1 || die "saknar pactl (PulseAudio)"
-    local kind dev
+    local kind dev list
     if [ "$1" = "input" ]; then kind=sources; else kind=sinks; fi
-    # exakt → hel delsträng → FÖRSTA ordet (t.ex. "Anker" matchar alsa_output.usb-Anker_PowerConf_S330…)
-    dev="$(pactl list short "$kind" | awk '{print $2}' | grep -ixF "$2" | head -1 || true)"
-    [ -z "$dev" ] && dev="$(pactl list short "$kind" | awk '{print $2}' | grep -iF "$2" | head -1 || true)"
-    [ -z "$dev" ] && dev="$(pactl list short "$kind" | awk '{print $2}' | grep -iF "${2%% *}" | head -1 || true)"
+    list="$(pactl list short "$kind" | awk '{print $2}')"
+    # input: uteslut .monitor (loopback av UTgången, inte en mikrofon)
+    [ "$1" = "input" ] && list="$(printf '%s\n' "$list" | grep -v '\.monitor$' || true)"
+    # exakt → hel delsträng → FÖRSTA ordet ("Anker" matchar alsa_input.usb-ANKER_Anker_PowerConf_S330…)
+    dev="$(printf '%s\n' "$list" | grep -ixF "$2" | head -1 || true)"
+    [ -z "$dev" ] && dev="$(printf '%s\n' "$list" | grep -iF "$2" | head -1 || true)"
+    [ -z "$dev" ] && dev="$(printf '%s\n' "$list" | grep -iF "${2%% *}" | head -1 || true)"
     [ -z "$dev" ] && dev="$2"
     if [ "$1" = "input" ]; then pactl set-default-source "$dev"; else pactl set-default-sink "$dev"; fi \
       && echo "$1 → $dev" || die "kunde inte sätta $1 '$dev'"
