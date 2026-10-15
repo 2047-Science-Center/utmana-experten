@@ -32,9 +32,10 @@ setdev() { # typ(input|output)  namn
     command -v pactl >/dev/null 2>&1 || die "saknar pactl (PulseAudio)"
     local kind dev
     if [ "$1" = "input" ]; then kind=sources; else kind=sinks; fi
-    # exakt namn om det matchar, annars resolva på delsträng (t.ex. "Anker" → alsa_output.usb-Anker…)
+    # exakt → hel delsträng → FÖRSTA ordet (t.ex. "Anker" matchar alsa_output.usb-Anker_PowerConf_S330…)
     dev="$(pactl list short "$kind" | awk '{print $2}' | grep -ixF "$2" | head -1 || true)"
     [ -z "$dev" ] && dev="$(pactl list short "$kind" | awk '{print $2}' | grep -iF "$2" | head -1 || true)"
+    [ -z "$dev" ] && dev="$(pactl list short "$kind" | awk '{print $2}' | grep -iF "${2%% *}" | head -1 || true)"
     [ -z "$dev" ] && dev="$2"
     if [ "$1" = "input" ]; then pactl set-default-source "$dev"; else pactl set-default-sink "$dev"; fi \
       && echo "$1 → $dev" || die "kunde inte sätta $1 '$dev'"

@@ -8,7 +8,6 @@
  */
 import { computed } from 'vue'
 import { useUtmanaStore } from '../store/utmanaStore'
-import { seatName } from '@/config'
 
 const props = withDefaults(
   defineProps<{
@@ -68,7 +67,7 @@ function seat(n: number, votes: Record<number, string>, active: number, dim: boo
     </g>
     <g transform="translate(0,62)">${segs(lit)}</g>
     <g transform="translate(0,-50)"><circle r="15" fill="#d4682e"/><text y="5.5" text-anchor="middle" font-family="Unbounded" font-weight="700" font-size="17" fill="#160d07">${n}</text></g>
-    <text y="102" text-anchor="middle" font-family="Hanken Grotesk" font-weight="700" font-size="21" fill="${isActive ? '#f2e7cf' : '#c98a4a'}">${esc(seatName(n))}</text>
+    <text y="102" text-anchor="middle" font-family="Hanken Grotesk" font-weight="700" font-size="21" fill="${isActive ? '#f2e7cf' : '#c98a4a'}">${esc(store.displayName(n))}</text>
   </g>`
 }
 

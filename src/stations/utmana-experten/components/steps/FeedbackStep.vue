@@ -4,7 +4,6 @@
  *  valfri add-on bakom flaggan (av). Self-läge: klick = fortsätt. */
 import { computed, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
-import { seatName } from '@/config'
 
 const store = useUtmanaStore()
 
@@ -17,7 +16,7 @@ const voteOf = computed(() => {
 const plates = computed(() =>
   store.assessments
     .filter((a) => a.plats > 0)
-    .map((a) => ({ plats: a.plats, namn: seatName(a.plats), val: voteOf.value[a.plats] ?? '', text: a.svar_text })),
+    .map((a) => ({ plats: a.plats, namn: store.displayName(a.plats), val: voteOf.value[a.plats] ?? '', text: a.svar_text })),
 )
 
 onMounted(() => {

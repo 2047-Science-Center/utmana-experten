@@ -8,7 +8,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
 import { useSpeechCapture } from '@/station-kit/capture/useSpeechCapture'
-import { config, seatName } from '@/config'
+import { config } from '@/config'
 import Horseshoe from '../Horseshoe.vue'
 
 const store = useUtmanaStore()
@@ -17,7 +17,7 @@ const capture = useSpeechCapture({ windowMs: store.currentSpeakSeconds * 1000, l
 const manualText = ref('')
 let finalizing = false
 
-const who = computed(() => (store.activePlats ? `${seatName(store.activePlats)} har ordet` : ''))
+const who = computed(() => (store.activePlats ? `${store.displayName(store.activePlats)} har ordet` : ''))
 const useManual = computed(() => !capture.supported || capture.error.value != null)
 const liveText = computed(() => (useManual.value ? manualText.value : capture.transcript.value))
 const secondsLeft = computed(() => Math.max(0, Math.ceil((capture.remainingMs.value ?? 0) / 1000)))

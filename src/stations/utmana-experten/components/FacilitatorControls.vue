@@ -40,6 +40,13 @@ function doExit() {
     </div>
     <div v-else class="facil__row">
       <button
+        v-if="store.started"
+        class="crt-button facil__btn facil__next"
+        @click="store.next()"
+      >
+        ▸ Nästa
+      </button>
+      <button
         class="crt-button facil__btn"
         :class="{ 'crt-button--strong': store.paused }"
         @click="store.togglePause()"
@@ -90,5 +97,11 @@ function doExit() {
 .facil__reset {
   color: var(--color-ink-muted);
   border-color: var(--color-primary-dim);
+}
+.facil__next {
+  opacity: 1;
+  color: var(--color-ink-strong);
+  border-color: var(--color-primary);
+  font-weight: 700;
 }
 </style>

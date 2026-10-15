@@ -18,7 +18,7 @@ import type { ResultPayload, ResultPerson } from '@/station-kit/adapters/result/
 import type { Scen, KnappEvent, GmEvent } from '@/station-kit/adapters/rig/Rig'
 import { audio } from '@/station-kit/audio/AudioEngine'
 import { t } from '@/station-kit/i18n'
-import { config } from '@/config'
+import { config, seatName } from '@/config'
 
 import type { FormatDef, Step, Vote, Turn, SeatAssessment, VoteStep, SpeakRoundStep, AssessStep, FacitStep } from '../engine/types'
 import { currentStep as currentOf, isDone, nextIndex, nextSeat, attitydDelta } from '../engine/sequencer'
@@ -54,6 +54,8 @@ export const useUtmanaStore = defineStore('utmana', () => {
   // --- Grupp / platser ---
   const seats = ref<number[]>(Array.from({ length: config.seats }, (_, i) => i + 1))
   const groupId = ref('pilot')
+  /** Inskrivna spelarnamn per plats (tomt → platshållare via displayName). */
+  const playerNames = ref<Record<number, string>>({})
 
   // --- Rundans data ---
   const votes = ref<Record<string, Vote[]>>({}) // keyad på matpunkt (fore/efter/annan)
@@ -105,6 +107,16 @@ export const useUtmanaStore = defineStore('utmana', () => {
   }
   function setMode(m: Mode): void {
     mode.value = m
+  }
+
+  // --- Spelarnamn (incheckning) ---
+  function setPlayerName(plats: number, name: string): void {
+    playerNames.value = { ...playerNames.value, [plats]: name }
+  }
+  /** Visningsnamn: inskrivet namn om satt, annars platshållare. */
+  function displayName(plats: number): string {
+    const n = playerNames.value[plats]
+    return n && n.trim() ? n.trim() : seatName(plats)
   }
 
   // --- Start / sekvensering ---
@@ -346,6 +358,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
     finished.value = false
     awaitingNext.value = false
     stepIndex.value = 0
+    playerNames.value = {}
     cue((r) => r.scen('attract'))
   }
 
@@ -372,13 +385,14 @@ export const useUtmanaStore = defineStore('utmana', () => {
   return {
     // state
     format, mode, started, finished, stepIndex, awaitingNext, masterLocked,
-    seats, groupId, votes, turns, spokeSeats, assessments, facitRatt,
+    seats, groupId, playerNames, votes, turns, spokeSeats, assessments, facitRatt,
     activePlats, currentSpeakSeconds, turnEndSignal, assessing, speaking, paused,
     // derived
     steps, current, stepType, currentMatpunkt, currentVotes, allSeatsVoted, delta,
     // actions
     init, selectFormat, setMode, start, next, stepComplete, enterStep,
     onKnapp, onGm, castVote, endTurn, speakNpc, togglePause, quitStation, reset,
+    setPlayerName, displayName,
   }
 })
 

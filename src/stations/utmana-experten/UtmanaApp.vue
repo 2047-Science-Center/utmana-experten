@@ -11,6 +11,7 @@ import { useUtmanaStore } from './store/utmanaStore'
 import { DEFAULT_FORMAT_ID } from './formats'
 import StudioFrame from './components/StudioFrame.vue'
 import StepStage from './components/StepStage.vue'
+import CheckinScreen from './components/CheckinScreen.vue'
 import MuteButton from '@/station-kit/components/MuteButton.vue'
 import FacilitatorControls from './components/FacilitatorControls.vue'
 import PauseOverlay from './components/PauseOverlay.vue'
@@ -28,7 +29,7 @@ function onAttractStart() {
   booted.value = true
   audio.unlock()
   audio.play('boot')
-  if (store.mode === 'self') store.start()
+  // Går till incheckning (namn); CheckinScreen startar omgången.
 }
 function restart() {
   store.reset()
@@ -56,12 +57,8 @@ const showLobby = computed(() => booted.value && !store.started && !store.finish
         <p class="press live">Tryck på valfri knapp för att börja</p>
       </div>
 
-      <!-- Lobby (spelledarläge innan START / mellan körningar) -->
-      <div v-else-if="showLobby" class="screen--attract">
-        <h1 class="wordmark" style="font-size: 6cqw">Redo?</h1>
-        <p class="tagline">{{ store.mode === 'gm' ? 'Väntar på spelledaren …' : 'Tryck KÖR för att börja' }}</p>
-        <button v-if="store.mode === 'self'" class="gs-btn" @click="store.start()">KÖR</button>
-      </div>
+      <!-- Incheckning (spelarnamn) -->
+      <CheckinScreen v-else-if="showLobby" @done="store.start()" />
 
       <!-- Motorn -->
       <StepStage v-else-if="store.started" />
