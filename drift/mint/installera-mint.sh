@@ -54,11 +54,26 @@ fi
 
 # --- Broker ---
 if [ "$BROKER" = "localhost" ] || [ "$BROKER" = "127.0.0.1" ]; then
-  echo "▸ LOKAL broker: installerar mosquitto (1883 för ESP + 9001 websockets för appen)…"
   sudo apt-get install -y mosquitto
-  sudo cp "$REPO_DIR/tools/mosquitto-utmana.conf" /etc/mosquitto/conf.d/utmana.conf
-  sudo systemctl enable --now mosquitto
-  sudo systemctl restart mosquitto
+  # Städa ev. tidigare utmana-conf så detekteringen bara ser ANDRA confs.
+  sudo rm -f /etc/mosquitto/conf.d/utmana.conf /etc/mosquitto/conf.d/utmana-ws.conf
+  if grep -rqsE '^[[:space:]]*listener[[:space:]]+1883' /etc/mosquitto/mosquitto.conf /etc/mosquitto/conf.d/ 2>/dev/null; then
+    # 1883 definieras redan av en annan conf (t.ex. Eco Loco på samma låda). Lägg BARA till
+    # websockets (9001) — INGEN andra listener 1883 (det var portkrocken). Topic-rötterna
+    # ecoloco/* och utmanaexperten/* krockar inte → de delar broker.
+    echo "▸ 1883 finns redan (annan conf, t.ex. Eco Loco) — lägger bara till websockets (9001)…"
+    printf 'listener 9001 0.0.0.0\nprotocol websockets\nallow_anonymous true\n' \
+      | sudo tee /etc/mosquitto/conf.d/utmana-ws.conf >/dev/null
+  else
+    echo "▸ LOKAL broker: 1883 (ESP) + 9001 (websockets, appen)…"
+    sudo cp "$REPO_DIR/tools/mosquitto-utmana.conf" /etc/mosquitto/conf.d/utmana.conf
+  fi
+  sudo systemctl enable mosquitto 2>/dev/null || true
+  sudo systemctl restart mosquitto || true
+  sleep 1
+  sudo systemctl is-active --quiet mosquitto \
+    && echo "  ✓ mosquitto kör (1883 + 9001)" \
+    || echo "  ⚠ mosquitto startar inte — kolla: journalctl -xeu mosquitto.service"
   ESP_BROKER="$(hostname -I | awk '{print $1}')"
 else
   echo "▸ EXTERN broker: $BROKER — installerar ingen lokal."
