@@ -239,7 +239,8 @@ body {
 .mic__text .cursor { color: var(--orange); }
 .mic__timer { margin-top: 2.4cqw; font-family: var(--f-disp); font-weight: 700; font-size: 1.7cqw; letter-spacing: 0.06em; color: var(--birch-lt); display: inline-flex; align-items: center; gap: 0.6em; }
 .mic__timer b { color: var(--creme); }
-.mic__fallback { margin-top: 1.6cqw; width: 100%; background: var(--panel); color: var(--creme); border: 1px solid var(--birch); border-radius: 10px; padding: 1cqw; font-family: var(--f-text); font-size: 1.8cqw; }
+.mic__fallback { margin-top: 0.6cqw; width: 100%; background: var(--panel); color: var(--creme); border: 1px solid var(--birch); border-radius: 10px; padding: 1cqw; font-family: var(--f-text); font-size: 1.8cqw; box-sizing: border-box; }
+.mic__err { margin: 1.4cqw 0 0; font-family: var(--f-text); font-weight: 700; font-size: 1.5cqw; color: var(--nej); }
 
 /* ============ Assess ============ */
 .think { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; text-align: center; }

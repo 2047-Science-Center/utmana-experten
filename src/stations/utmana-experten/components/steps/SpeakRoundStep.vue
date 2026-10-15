@@ -19,6 +19,19 @@ let finalizing = false
 
 const who = computed(() => (store.activePlats ? `${store.displayName(store.activePlats)} har ordet` : ''))
 const useManual = computed(() => !capture.supported || capture.error.value != null)
+const errReason = computed(() => {
+  if (!capture.supported) return 'webbläsaren saknar Web Speech — kör Google Chrome (ej Chromium)'
+  switch (capture.error.value) {
+    case 'not-allowed':
+      return 'mikrofonen blockerad — tillåt mick för sidan'
+    case 'no-mic':
+      return 'ingen mikrofon hittad — kolla att Ankern är vald som in-enhet'
+    case 'no-internet':
+      return 'ingen internetanslutning — Web Speech är molnbaserat'
+    default:
+      return 'rösten fångas inte'
+  }
+})
 const liveText = computed(() => (useManual.value ? manualText.value : capture.transcript.value))
 const secondsLeft = computed(() => Math.max(0, Math.ceil((capture.remainingMs.value ?? 0) / 1000)))
 const timer = computed(() => `00:${String(secondsLeft.value).padStart(2, '0')}`)
@@ -74,7 +87,10 @@ onMounted(() => {
     <div class="mic">
       <span class="mic__who"><span class="mic__live on"></span>{{ who }}</span>
       <p v-if="!useManual" class="mic__text">{{ liveText }}<span class="cursor">▍</span></p>
-      <textarea v-else v-model="manualText" rows="3" class="mic__fallback" placeholder="Rösten fångas inte — skriv in i stället" />
+      <div v-else>
+        <p class="mic__err">⚠ {{ errReason }}</p>
+        <textarea v-model="manualText" rows="3" class="mic__fallback" placeholder="Skriv in i stället" />
+      </div>
       <div class="mic__timer">⏱ <b>{{ timer }}</b> kvar · valfri knapp = KLAR ▸</div>
     </div>
   </div>
