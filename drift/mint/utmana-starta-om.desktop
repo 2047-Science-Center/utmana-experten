@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Starta om spelet
+Name=Starta om — Utmana experten
 Comment=Nollställ Utmana experten — starta om gateway + hjärna + ladda om skärmen
 # @EXEC@ ersätts av installera-knappar.sh med rätt sökväg till starta-om.sh.
 Exec=@EXEC@
