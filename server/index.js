@@ -72,6 +72,9 @@ function turnsBlock(turns) {
 function buildAssessInput(input) {
   const lines = []
   if (input.fraga) lines.push(`FRÅGAN GRUPPEN TOG STÄLLNING TILL: ${input.fraga}`)
+  if (Array.isArray(input.alternativ) && input.alternativ.length) {
+    lines.push(`ALTERNATIVEN DE VALDE MELLAN: ${input.alternativ.join(' · ')}`)
+  }
   if (input.facit) lines.push(`FACIT (det svar som stämmer bäst): ${input.facit}`)
   lines.push('HELA TURORDNINGEN (märkt per plats — sekvensen avgör vem som pratar):', turnsBlock(input.turns))
   if (input.focus) {
@@ -169,6 +172,9 @@ app.post('/speak', async (req, res) => {
 const DIST = path.join(__dirname, '..', 'dist')
 if (fs.existsSync(path.join(DIST, 'index.html'))) {
   app.use(express.static(DIST))
+  // Spelledar-fönstret (egen sida) — ren URL utan .html för surfplattan.
+  app.get('/spelledare', (_req, res) => res.sendFile(path.join(DIST, 'spelledare.html')))
+  // SPA-fallback för stationen (allt annat → index.html).
   app.get('*', (_req, res) => res.sendFile(path.join(DIST, 'index.html')))
   console.log('[gateway] serverar byggd app från', DIST)
 }

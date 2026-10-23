@@ -1,0 +1,107 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Filmstillbild: gjuteri-chef vid skrivbord lägger fram sitt dilemma">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#113c45"/><stop offset="0.55" stop-color="#0a2228"/><stop offset="1" stop-color="#05161c"/>
+</linearGradient>
+<radialGradient id="furnace" cx="50%" cy="50%" r="50%">
+<stop offset="0" stop-color="#ffd27a"/><stop offset="0.35" stop-color="#f08a2e"/><stop offset="0.75" stop-color="#8f3b12"/><stop offset="1" stop-color="#8f3b12" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="glowpool" cx="78%" cy="62%" r="60%">
+<stop offset="0" stop-color="#e07a2e" stop-opacity="0.55"/><stop offset="1" stop-color="#e07a2e" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="key" cx="40%" cy="40%" r="60%">
+<stop offset="0" stop-color="#ffe3b0" stop-opacity="0.5"/><stop offset="1" stop-color="#ffe3b0" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="deskg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#4a3420"/><stop offset="1" stop-color="#241711"/>
+</linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#0d2f36"/><stop offset="1" stop-color="#3a2415"/>
+</linearGradient>
+</defs>
+
+<!-- scen -->
+<rect width="1280" height="720" fill="url(#bg)"/>
+<rect width="1280" height="720" fill="url(#glowpool)"/>
+
+<!-- tak/travers -->
+<rect x="0" y="52" width="1280" height="26" fill="#0a2228"/>
+<rect x="0" y="60" width="1280" height="6" fill="#163b43"/>
+<g stroke="#0a2228" stroke-width="12">
+<line x1="180" y1="78" x2="180" y2="150"/><line x1="1080" y1="78" x2="1080" y2="150"/>
+</g>
+<!-- travers-vagn + krok -->
+<rect x="930" y="78" width="120" height="30" rx="4" fill="#12343b"/>
+<line x1="990" y1="108" x2="990" y2="190" stroke="#2a1c10" stroke-width="4"/>
+<path d="M984,190 q6,18 12,0" fill="none" stroke="#c89b5e" stroke-width="5"/>
+
+<!-- ugn / skänk med glöd (höger) -->
+<g>
+<circle cx="1010" cy="430" r="200" fill="url(#furnace)" opacity="0.9"/>
+<path d="M905,360 L1130,360 L1095,560 L940,560 Z" fill="#160d08"/>
+<ellipse cx="1017" cy="362" rx="112" ry="26" fill="#ffcf72"/>
+<ellipse cx="1017" cy="360" rx="78" ry="16" fill="#fff0c8"/>
+<!-- rinnande glöd -->
+<path d="M1000,372 q-8,80 -40,150 l26,8 q24,-78 40,-150 Z" fill="#ff9a3c" opacity="0.85"/>
+</g>
+
+<!-- golv + reflex -->
+<path d="M0,560 L1280,560 L1280,720 L0,720 Z" fill="#071b21"/>
+<path d="M0,560 L1280,560 L1280,600 L0,600 Z" fill="#0e2c33" opacity="0.6"/>
+<ellipse cx="1010" cy="585" rx="230" ry="26" fill="#e07a2e" opacity="0.28"/>
+
+<!-- embers -->
+<g fill="#ffcf72">
+<circle cx="880" cy="300" r="3"/><circle cx="930" cy="250" r="2.3"/><circle cx="1060" cy="230" r="2.6"/><circle cx="1130" cy="330" r="3.2"/><circle cx="840" cy="400" r="2"/><circle cx="1150" cy="440" r="2.4"/>
+</g>
+
+<!-- key-ljus på person -->
+<ellipse cx="470" cy="330" rx="330" ry="300" fill="url(#key)"/>
+
+<!-- PERSON bakom skrivbord -->
+<g>
+<!-- torso -->
+<path d="M360,560 L360,430 q0,-70 110,-70 q110,0 110,70 L580,560 Z" fill="url(#rim)"/>
+<path d="M470,360 q96,0 108,62 L560,560 L560,470 q0,-82 -90,-96 Z" fill="#3a2415" opacity="0.7"/>
+<!-- hals + huvud -->
+<rect x="448" y="300" width="44" height="46" rx="16" fill="#9c6a47"/>
+<circle cx="470" cy="276" r="46" fill="#b07c54"/>
+<path d="M470,230 a46,46 0 0 1 44,34 q-44,-16 -88,0 a46,46 0 0 1 44,-34 Z" fill="#2a1a10"/>
+<!-- rim-ljus (mot ugnen) -->
+<path d="M512,246 a46,46 0 0 1 2,56 l-6,-2 a40,40 0 0 0 -2,-50 Z" fill="#ffcf93" opacity="0.8"/>
+<path d="M560,470 q0,-70 -40,-96 l10,-6 q44,30 44,102 Z" fill="#ffcf93" opacity="0.35"/>
+<!-- gestikulerande arm på bordet -->
+<path d="M548,470 q70,10 96,70 l-30,16 q-28,-50 -84,-56 Z" fill="#6d4a30"/>
+<ellipse cx="648" cy="548" rx="22" ry="15" fill="#b07c54"/>
+</g>
+
+<!-- SKRIVBORD (förgrund) -->
+<rect x="300" y="520" width="520" height="120" rx="8" fill="url(#deskg)"/>
+<rect x="300" y="520" width="520" height="8" fill="#6b4a2c"/>
+<!-- laptop -->
+<g transform="translate(372,500)">
+<path d="M0,36 L70,36 L82,0 L12,0 Z" fill="#12343b"/>
+<path d="M-6,36 L88,36 L96,48 L-14,48 Z" fill="#1c4a54"/>
+<path d="M8,32 L70,32 L78,6 L16,6 Z" fill="#2a6b77" opacity="0.6"/>
+</g>
+<!-- papper -->
+<rect x="470" y="548" width="90" height="60" rx="3" fill="#e8dcc2" opacity="0.9" transform="rotate(-7 515 578)"/>
+
+<!-- haze -->
+<rect width="1280" height="720" fill="#bfe0e6" opacity="0.03"/>
+
+<!-- REC / timecode (filmstill-känsla) -->
+<g transform="translate(1120,44)" font-family="Verdana, Arial, sans-serif">
+<circle cx="0" cy="0" r="7" fill="#e23b2e"/>
+<text x="14" y="5" font-size="18" font-weight="bold" fill="#f2e7cf">REC</text>
+<text x="-2" y="26" font-size="14" fill="#c89b5e">00:12:04</text>
+</g>
+
+<!-- lower-third -->
+<g font-family="Verdana, Arial, sans-serif">
+<rect x="70" y="596" width="8" height="78" fill="#d4682e"/>
+<rect x="78" y="596" width="560" height="78" fill="#0a2228" opacity="0.82"/>
+<text x="100" y="628" font-size="21" font-weight="bold" fill="#f2e7cf" letter-spacing="1">VD · GJUTERI I DALARNA</text>
+<text x="100" y="658" font-size="18" fill="#c89b5e">”Vi hittar inte unga — vad borde vi satsa på?”</text>
+</g>
+</svg>

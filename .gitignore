@@ -21,3 +21,9 @@ bestallning-erik/*/secrets.h
 # Python
 __pycache__
 *.pyc
+
+# Käll-/masterklippen (~74 MB, full bitrate) hålls UTANFÖR git — Josef har dem
+# lokalt. De SLIMMADE, servade klippen i public/media/ (~41 MB, 576×1024) committas
+# så drift får dem via git. Byt klipp = lägg ny master i assets/video/ + slimma
+# om till public/media/.
+assets/video/

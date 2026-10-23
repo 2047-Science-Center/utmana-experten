@@ -1,0 +1,99 @@
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Filmstillbild: gjuteriet valde ny teknik — en robotcell vid gjutlinjen">
+<defs>
+<linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#103a43"/><stop offset="0.55" stop-color="#0a2228"/><stop offset="1" stop-color="#05161c"/>
+</linearGradient>
+<radialGradient id="furnace2" cx="50%" cy="50%" r="50%">
+<stop offset="0" stop-color="#ffd27a"/><stop offset="0.4" stop-color="#f08a2e"/><stop offset="1" stop-color="#8f3b12" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="techlight" cx="50%" cy="50%" r="50%">
+<stop offset="0" stop-color="#5ff0b0" stop-opacity="0.45"/><stop offset="1" stop-color="#36b34a" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="arm" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#2e5660"/><stop offset="1" stop-color="#112930"/>
+</linearGradient>
+</defs>
+
+<!-- scen -->
+<rect width="1280" height="720" fill="url(#bg2)"/>
+<circle cx="1030" cy="430" r="190" fill="url(#furnace2)" opacity="0.7"/>
+<ellipse cx="620" cy="440" rx="320" ry="260" fill="url(#techlight)"/>
+
+<!-- tak/travers -->
+<rect x="0" y="52" width="1280" height="24" fill="#0a2228"/>
+<rect x="0" y="60" width="1280" height="5" fill="#163b43"/>
+
+<!-- golv + reflexer -->
+<path d="M0,560 L1280,560 L1280,720 L0,720 Z" fill="#071b21"/>
+<path d="M0,560 L1280,560 L1280,598 L0,598 Z" fill="#0e2c33" opacity="0.6"/>
+<ellipse cx="840" cy="596" rx="150" ry="22" fill="#2e5660" opacity="0.45"/>
+<ellipse cx="610" cy="590" rx="120" ry="20" fill="#36b34a" opacity="0.22"/>
+
+<!-- ugn (bakgrund, höger) -->
+<path d="M945,380 L1120,380 L1092,560 L973,560 Z" fill="#160d08"/>
+<ellipse cx="1033" cy="382" rx="88" ry="20" fill="#ffcf72"/>
+
+<!-- INDUSTRIROBOT (ny teknik) -->
+<g>
+<!-- bas -->
+<rect x="795" y="500" width="92" height="70" rx="10" fill="url(#arm)"/>
+<rect x="805" y="492" width="72" height="20" rx="8" fill="#2e5660"/>
+<circle cx="841" cy="500" r="26" fill="#1c3b43" stroke="#c89b5e" stroke-width="3"/>
+<!-- nedre arm -->
+<path d="M828,500 L700,404 q-14,-11 2,-30 q16,-18 30,-6 L858,474 Z" fill="url(#arm)"/>
+<circle cx="716" cy="392" r="24" fill="#1c3b43" stroke="#c89b5e" stroke-width="3"/>
+<!-- övre arm -->
+<path d="M716,392 L600,432 q-18,6 -14,26 q4,18 22,12 L726,420 Z" fill="url(#arm)"/>
+<circle cx="600" cy="446" r="20" fill="#1c3b43" stroke="#c89b5e" stroke-width="3"/>
+<!-- handled + gripdon -->
+<rect x="556" y="436" width="46" height="22" rx="6" fill="#2e5660" transform="rotate(-8 579 447)"/>
+<path d="M556,444 l-16,-8 M556,456 l-16,10" stroke="#c89b5e" stroke-width="5" stroke-linecap="round"/>
+<!-- grön tech-rim längs armen -->
+<path d="M828,500 L700,404" stroke="#36b34a" stroke-width="3" opacity="0.7"/>
+<path d="M716,392 L600,432" stroke="#36b34a" stroke-width="3" opacity="0.7"/>
+<!-- glödande gjutgods i gripdonet -->
+<circle cx="536" cy="452" r="18" fill="#ff9a3c"/>
+<circle cx="536" cy="452" r="9" fill="#fff0c8"/>
+</g>
+
+<!-- skyddsbur (förgrund, diskret) -->
+<g stroke="#163b43" stroke-width="3" opacity="0.5">
+<line x1="470" y1="300" x2="470" y2="620"/><line x1="560" y1="300" x2="560" y2="620"/>
+<line x1="470" y1="360" x2="560" y2="360"/><line x1="470" y1="460" x2="560" y2="460"/><line x1="470" y1="560" x2="560" y2="560"/>
+</g>
+
+<!-- embers -->
+<g fill="#ffcf72"><circle cx="1000" cy="300" r="2.6"/><circle cx="1080" cy="260" r="2"/><circle cx="560" cy="400" r="2.2"/></g>
+<rect width="1280" height="720" fill="#bfe0e6" opacity="0.03"/>
+
+<!-- REC / timecode -->
+<g transform="translate(1120,44)" font-family="Verdana, Arial, sans-serif">
+<circle cx="0" cy="0" r="7" fill="#e23b2e"/>
+<text x="14" y="5" font-size="18" font-weight="bold" fill="#f2e7cf">REC</text>
+<text x="-2" y="26" font-size="14" fill="#c89b5e">00:41:18</text>
+</g>
+
+<!-- rubrik -->
+<g font-family="Verdana, Arial, sans-serif">
+<rect x="70" y="70" width="8" height="34" fill="#d4682e"/>
+<text x="92" y="96" font-size="24" font-weight="bold" fill="#f2e7cf" letter-spacing="2">SÅ GJORDE FÖRETAGET</text>
+<text x="92" y="122" font-size="15" fill="#c89b5e" font-style="italic">Ett exempel — inget facit</text>
+</g>
+
+<!-- val + resultat (lower-third) -->
+<g font-family="Verdana, Arial, sans-serif">
+<rect x="70" y="590" width="8" height="90" fill="#36b34a"/>
+<rect x="78" y="590" width="470" height="90" fill="#0a2228" opacity="0.85"/>
+<circle cx="104" cy="620" r="9" fill="#36b34a"/>
+<text x="124" y="626" font-size="22" font-weight="bold" fill="#f2e7cf">FÖRETAGET VALDE: NY TEKNIK</text>
+<text x="96" y="658" font-size="15" fill="#c89b5e">En robotcell till gjutlinjen — färre tunga lyft, nya jobb.</text>
+
+<!-- stat-chips -->
+<g transform="translate(600,590)">
+<rect x="0" y="0" width="300" height="42" rx="10" fill="#0a2228" stroke="#36b34a" stroke-width="1.5"/>
+<text x="16" y="27" font-size="16" fill="#f2e7cf"><tspan font-weight="bold" fill="#36b34a" font-size="20">×3</tspan>  unga sökande / år</text>
+<rect x="0" y="50" width="300" height="42" rx="10" fill="#0a2228" stroke="#c89b5e" stroke-width="1.5"/>
+<text x="16" y="77" font-size="16" fill="#f2e7cf"><tspan font-weight="bold" fill="#f2c021" font-size="20">−70%</tspan>  tunga lyft</text>
+</g>
+</g>
+</svg>

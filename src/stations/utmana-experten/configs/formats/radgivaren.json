@@ -1,13 +1,24 @@
 {
   "id": "radgivaren",
   "namn": "Rådgivaren",
-  "fraga": "En kompis tvekar mellan en säker lärlingsplats och en osäker drömutbildning. Vad råder ni?",
+  "beskrivning": "Bli företagets konsult. Ge ert bästa råd — och motivera det.",
+  "byggd": true,
+  "fraga": "Ett industriföretag i Dalarna hittar inte unga som vill jobba hos dem — snittåldern är hög och nästan inga tjejer söker. De har pengar att satsa på EN sak för att locka fler unga. Vad borde de göra?",
+  "brodtext": "Ni är inhyrda som konsulter. Företaget har pengar för EN satsning — välj den ni tror ger bäst effekt på sikt, och var redo att motivera varför.",
+  "alternativ": [
+    { "id": "lon", "label": "Höj lönen", "beskrivning": "Betala mer än konkurrenterna för att locka och behålla folk." },
+    { "id": "teknik", "label": "Ny teknik", "beskrivning": "Investera i robotar och automation — färre tunga moment, mer attraktivt för unga." },
+    { "id": "synlighet", "label": "Synlighet", "beskrivning": "Syns där unga är — skolor och sociala medier — och visa hur jobbet faktiskt är." }
+  ],
   "steps": [
     { "typ": "present", "contentId": "dilemma", "source": "screen" },
+    { "typ": "vote", "val": ["lon", "teknik", "synlighet"], "matpunkt": "fore" },
     { "typ": "speak_round", "sekunder": 20 },
     { "typ": "assess", "configId": "utmana-radgivaren", "perPerson": true },
     { "typ": "feedback", "form": "text-per-person" },
-    { "typ": "clip", "contentId": "vad-hande", "rubrik": "Så gick det för en som stod inför samma val" }
+    { "typ": "clip", "contentId": "vad-hande", "rubrik": "Så här gjorde företaget" },
+    { "typ": "vote", "val": ["lon", "teknik", "synlighet"], "matpunkt": "efter" },
+    { "typ": "reveal", "kalla": "delta" }
   ],
   "speak": { "enabled": false, "voiceId": "sanna" }
 }

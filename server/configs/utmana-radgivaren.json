@@ -5,7 +5,7 @@
   "reasoningEffort": "low",
   "maxOutputTokens": 500,
   "jsonMode": true,
-  "instructionsFile": "instructions/utmana.sv.txt",
+  "instructionsFile": "instructions/utmana-radgivaren.sv.txt",
   "outputSchema": {
     "band": "string (Stark|Godkänd|Svag)",
     "svar_text": "string"

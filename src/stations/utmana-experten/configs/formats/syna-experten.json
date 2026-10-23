@@ -1,6 +1,7 @@
 {
   "id": "syna-experten",
   "namn": "Syna experten",
+  "beskrivning": "Granska en tvärsäker expert. Håller påståendet för en koll?",
   "riskfyllt": true,
   "fraga": "En 'expert' påstår: AI kommer ta de flesta jobb inom tio år. Håller ni med?",
   "facit": "kanske",

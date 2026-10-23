@@ -1,13 +1,21 @@
 {
   "id": "andra-dig",
   "namn": "Ändra dig",
-  "fraga": "Skulle du kunna tänka dig ett yrke inom industrin?",
-  "facit": "ja",
+  "beskrivning": "Reagera på yrkestiteln, välj och motivera — se klippet och tänk om.",
+  "byggd": true,
+  "fraga": "Skulle du kunna tänka dig det här jobbet?",
+  "varianter": [
+    { "id": "tappare", "titel": "Tappare" },
+    { "id": "dronaroperator", "titel": "Undervattensdrönar-operatör" },
+    { "id": "stenhuggare", "titel": "Stenhuggare" },
+    { "id": "ciselor", "titel": "Ciselör" }
+  ],
   "steps": [
-    { "typ": "present", "contentId": "fraga", "source": "screen" },
+    { "typ": "present", "contentId": "titel", "source": "screen" },
     { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "fore" },
-    { "typ": "clip", "contentId": "verklighet", "rubrik": "Så ser det faktiskt ut i dag" },
-    { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "efter" },
+    { "typ": "speak_round", "sekunder": 15 },
+    { "typ": "clip", "contentId": "klipp", "rubrik": "Så ser jobbet faktiskt ut" },
+    { "typ": "vote", "val": ["ja", "nej"], "matpunkt": "efter" },
     { "typ": "reveal", "kalla": "delta" }
   ],
   "speak": { "enabled": false, "voiceId": "sanna" }

@@ -1,0 +1,6 @@
+{
+  "tappare": { "typ": "video", "aspect": "9:16", "file": "tappare.mp4", "brief": "Tappare — vad jobbet faktiskt är (TikTok-klipp)." },
+  "dronaroperator": { "typ": "video", "aspect": "9:16", "file": "dronaroperator.mp4", "brief": "Undervattensdrönar-operatör — vad jobbet faktiskt är." },
+  "stenhuggare": { "typ": "video", "aspect": "9:16", "file": "stenhuggare.mp4", "brief": "Stenhuggare — vad jobbet faktiskt är." },
+  "ciselor": { "typ": "video", "aspect": "9:16", "file": "ciselor.mp4", "brief": "Ciselör — vad jobbet faktiskt är." }
+}

@@ -24,7 +24,8 @@ export interface PresentStep {
 
 export interface VoteStep {
   typ: 'vote'
-  /** Tillåtna val, speglar arkadknapparna (ja/nej/kanske). */
+  /** Tillåtna val, i knappordning (plats 0/1/2 = vänster/mitt/höger arkadknapp).
+   *  ja/nej/kanske ELLER namngivna alternativ-id:n (se FormatDef.alternativ). */
   val: string[]
   /** Mätpunkt för attityd-delta (före→efter), eller null = vanlig omröstning. */
   matpunkt?: 'fore' | 'efter' | null
@@ -83,14 +84,43 @@ export type Step =
   | ClipStep
   | RevealStep
 
+/** Ett namngivet svarsalternativ (ersätter ja/nej/kanske i format som Rådgivaren).
+ *  Ordningen = knappordningen: index 0/1/2 → vänster/mitt/höger arkadknapp. */
+export interface Alternativ {
+  id: string
+  label: string
+  /** Kort förklaring av den föreslagna åtgärden (visas på present-korten). */
+  beskrivning?: string
+}
+
+/** En VARIANT av ett format — samma steg, olika innehåll (t.ex. Ändra digs fyra
+ *  yrkestitlar, var och en med sitt klipp). Spelledaren väljer variant i panelen.
+ *  Present-steget visar `titel`; klipp-steget hämtar media på variantens `id`
+ *  (nyckel i media.<format>.json). */
+export interface Variant {
+  id: string
+  titel: string
+}
+
 export interface FormatDef {
   id: string
   namn: string
+  /** Enradig teaser för format-väljaren. */
+  beskrivning?: string
+  /** false/utelämnat = ännu ej byggt (låst i väljaren). */
+  byggd?: boolean
   /** Markerar format med etiskt känsligt innehåll (syna-experten). */
   riskfyllt?: boolean
   /** Frågan gruppen tar ställning till (kontext till present/assess). */
   fraga?: string
-  /** Facit-svaret (ja|nej|kanske) — vilket som tänds vid facit. */
+  /** Kort ingress/ram under frågan i present-steget (innan röstningen). */
+  brodtext?: string
+  /** Varianter (samma steg, olika titel+klipp). Spelledaren väljer i panelen;
+   *  present visar variantens titel, klipp-steget hämtar variantens media. */
+  varianter?: Variant[]
+  /** Namngivna svarsalternativ (i knappordning). Saknas → ja/nej/kanske. */
+  alternativ?: Alternativ[]
+  /** Facit-svaret (ja|nej|kanske el. alternativ-id) — vilket som tänds vid facit. */
   facit?: string
   steps: Step[]
   speak?: { enabled: boolean; voiceId?: string }
