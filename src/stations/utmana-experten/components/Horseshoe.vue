@@ -8,6 +8,7 @@
  */
 import { computed } from 'vue'
 import { useUtmanaStore } from '../store/utmanaStore'
+import { slotsOf, type SlotOption } from '../engine/voteSlots'
 
 const props = withDefaults(
   defineProps<{
@@ -30,17 +31,23 @@ const POS: Record<number, { x: number; y: number }> = {
   5: { x: 795, y: 400 },
   6: { x: 750, y: 255 },
 }
-const VC: Record<string, string> = { ja: '#36b34a', kanske: '#f2c021', nej: '#e23b2e' }
-const SEG = ['nej', 'kanske', 'ja'] // skärmordning NEJ·KANSKE·JA
+/** Röst-slottarna för aktuellt format (ja/nej/kanske el. namngivna alternativ),
+ *  i knappordning med positionsfärg. EN sanning i engine/voteSlots. */
+const SLOTS = computed<SlotOption[]>(() => slotsOf(store.format))
+function colorFor(val: string | null): string {
+  if (!val) return '#8a5a2a'
+  return SLOTS.value.find((s) => s.id === val)?.color ?? '#8a5a2a'
+}
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 function segs(lit: string | null): string {
-  const w = 22, h = 13, gap = 8, total = 3 * w + 2 * gap, x0 = -total / 2
-  return SEG.map((k, i) => {
-    const x = x0 + i * (w + gap), on = lit === k, c = VC[k]
+  const slots = SLOTS.value
+  const w = 22, h = 13, gap = 8, total = slots.length * w + (slots.length - 1) * gap, x0 = -total / 2
+  return slots.map((slot, i) => {
+    const x = x0 + i * (w + gap), on = lit === slot.id, c = slot.color
     const halo = on ? `<rect x="${x - 4}" y="-4" width="${w + 8}" height="${h + 8}" rx="6" fill="${c}" opacity=".4"/>` : ''
     return `${halo}<rect x="${x}" y="0" width="${w}" height="${h}" rx="4" fill="${on ? c : 'rgba(242,231,207,.12)'}" stroke="${on ? c : 'rgba(242,231,207,.2)'}" stroke-width="1"/>`
   }).join('')
@@ -52,7 +59,7 @@ function seat(n: number, votes: Record<number, string>, active: number, dim: boo
   const lit = facit ?? vote
   const isActive = active === n
   const isDim = dim && !isActive
-  const ringC = isActive ? '#f2e7cf' : vote ? VC[vote] : '#8a5a2a'
+  const ringC = isActive ? '#f2e7cf' : vote ? colorFor(vote) : '#8a5a2a'
   const ringW = isActive || vote ? 5 : 2.5
   const spot = isActive ? `<path d="M0,-210 L150,-20 L-150,-20 Z" fill="url(#spot)" opacity=".55"/>` : ''
   const halo = isActive

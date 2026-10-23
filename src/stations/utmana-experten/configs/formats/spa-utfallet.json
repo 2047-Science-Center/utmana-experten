@@ -1,6 +1,7 @@
 {
   "id": "spa-utfallet",
   "namn": "Spå utfallet",
+  "beskrivning": "Gissa framtiden — se sedan hur det faktiskt gick.",
   "fraga": "Tror ni att fler eller färre jobbar kvar på samma arbetsplats om tio år?",
   "facit": "nej",
   "steps": [

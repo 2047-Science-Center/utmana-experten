@@ -1,6 +1,7 @@
 {
   "id": "prata-in",
   "namn": "Prata in",
+  "beskrivning": "Prata fritt — AI:n lyssnar och ger personlig återkoppling.",
   "fraga": "Vad får ett jobb att kännas meningsfullt för dig?",
   "steps": [
     { "typ": "present", "contentId": "fraga", "source": "screen" },

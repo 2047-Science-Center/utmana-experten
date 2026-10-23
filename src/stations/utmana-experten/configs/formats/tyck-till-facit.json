@@ -1,6 +1,7 @@
 {
   "id": "tyck-till-facit",
   "namn": "Tyck till & facit",
+  "beskrivning": "Rösta, motivera, möt facit — se om någon tänker om.",
   "fraga": "Är en fast anställning alltid tryggare än att vara egenföretagare?",
   "facit": "nej",
   "steps": [

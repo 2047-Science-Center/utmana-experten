@@ -11,18 +11,19 @@
  * hela sekvensen via rig-adaptern (appen känner aldrig lager 2 = pixlar).
  */
 import { defineStore } from 'pinia'
-import { ref, computed, shallowRef } from 'vue'
+import { ref, computed, shallowRef, watch } from 'vue'
 
 import { createAdapters, type Adapters } from '@/station-kit/adapters'
 import type { ResultPayload, ResultPerson } from '@/station-kit/adapters/result/ResultSink'
-import type { Scen, KnappEvent, GmEvent } from '@/station-kit/adapters/rig/Rig'
+import type { Scen, KnappEvent, GmEvent, StatusSnapshot } from '@/station-kit/adapters/rig/Rig'
 import { audio } from '@/station-kit/audio/AudioEngine'
 import { t } from '@/station-kit/i18n'
 import { config, seatName } from '@/config'
 
-import type { FormatDef, Step, Vote, Turn, SeatAssessment, VoteStep, SpeakRoundStep, AssessStep, FacitStep } from '../engine/types'
+import type { FormatDef, Step, Vote, Turn, SeatAssessment, VoteStep, SpeakRoundStep, AssessStep, FacitStep, Variant } from '../engine/types'
 import { currentStep as currentOf, isDone, nextIndex, nextSeat, attitydDelta } from '../engine/sequencer'
 import { interpretKnapp } from '../engine/knapp'
+import { slotsOf } from '../engine/voteSlots'
 import { formatById, DEFAULT_FORMAT_ID } from '../formats'
 
 export type Mode = 'self' | 'gm'
@@ -40,10 +41,16 @@ const SCEN_OF: Partial<Record<Step['typ'], Scen>> = {
 
 const PRESENTATIONAL: Step['typ'][] = ['present', 'clip', 'facit', 'feedback', 'reveal']
 
+/** self: hur länge ett presentationssteg visas innan motorn auto-stegar (obemannad
+ *  drift). Överstyrs per steg med `dwellSeconds` i format-configen. gm struntar i
+ *  detta — där gatas varje steg och spelledaren stegar via gm/nasta. */
+const DWELL_MS = 20000
+
 export const useUtmanaStore = defineStore('utmana', () => {
   // --- Grund ---
   const adapters = shallowRef<Adapters | null>(null)
   const format = ref<FormatDef | null>(null)
+  const variantId = ref<string | null>(null) // vald variant (format med varianter, t.ex. Ändra dig)
   const mode = ref<Mode>('self')
   const started = ref(false)
   const finished = ref(false)
@@ -76,6 +83,12 @@ export const useUtmanaStore = defineStore('utmana', () => {
 
   // --- Härledda ---
   const steps = computed<Step[]>(() => format.value?.steps ?? [])
+  /** Vald variant (eller första om formatet har varianter men ingen vald). */
+  const activeVariant = computed<Variant | null>(() => {
+    const vs = format.value?.varianter
+    if (!vs?.length) return null
+    return vs.find((v) => v.id === variantId.value) ?? vs[0]
+  })
   const current = computed<Step | null>(() => (started.value ? currentOf(steps.value, stepIndex.value) : null))
   const stepType = computed<Step['typ'] | null>(() => current.value?.typ ?? null)
   const currentMatpunkt = computed<string | null>(() =>
@@ -87,10 +100,70 @@ export const useUtmanaStore = defineStore('utmana', () => {
   )
   const delta = computed(() => attitydDelta(votes.value['fore'] ?? [], votes.value['efter'] ?? []))
 
+  // --- Fjärr-status (control-plane): hela motor-läget för spelledar-fönstret ---
+  const statusSnapshot = computed<StatusSnapshot>(() => ({
+    fas: finished.value ? 'klar' : started.value ? 'kör' : 'lobby',
+    started: started.value,
+    finished: finished.value,
+    formatId: format.value?.id ?? null,
+    formatNamn: format.value?.namn ?? null,
+    mode: mode.value,
+    stepIndex: stepIndex.value,
+    stepTotal: steps.value.length,
+    stepTyp: stepType.value,
+    awaitingNext: awaitingNext.value,
+    paused: paused.value,
+    masterLocked: masterLocked.value,
+    activePlats: activePlats.value,
+    seats: seats.value,
+    namn: Object.fromEntries(seats.value.map((n) => [n, displayName(n)])),
+    variantId: activeVariant.value?.id ?? null,
+    varianter: format.value?.varianter?.map((v) => ({ id: v.id, titel: v.titel })) ?? [],
+    slots: slotsOf(format.value),
+    votes: currentVotes.value.map((v) => ({ plats: v.plats, val: v.val })),
+    matpunkt: currentMatpunkt.value,
+    ts: Date.now(),
+  }))
+  // Status är kontroll-plan, inte en ljus-cue → publiceras direkt (även under
+  // master-lås), aldrig via cue(). Retained, så en sent ansluten vy hamnar rätt.
+  watch(statusSnapshot, (s) => adapters.value?.rig.status(s), { deep: true })
+
   // --- Cue-hjälpare: tysta lager-1 när spelledaren tagit över riggen (master) ---
   function cue(fn: (rig: NonNullable<Adapters['rig']>) => void): void {
     const rig = adapters.value?.rig
     if (rig && !masterLocked.value) fn(rig)
+  }
+
+  // --- Dwell: presentationsstegens auto-nästa i self (obemannad drift) ---
+  let dwellTimer: number | null = null
+  let dwellToken = 0
+  function clearDwell(): void {
+    if (dwellTimer != null) {
+      window.clearTimeout(dwellTimer)
+      dwellTimer = null
+    }
+  }
+  function scheduleDwell(ms: number): void {
+    clearDwell()
+    const token = ++dwellToken
+    dwellTimer = window.setTimeout(() => {
+      dwellTimer = null
+      if (token !== dwellToken || paused.value) return
+      stepComplete()
+    }, ms)
+  }
+  /** Gating per steg vid inträde: presentationssteg auto-stegar i self (dwell)
+   *  och gatas i gm (väntar på spelledaren). Interaktiva steg (vote/speak_round/
+   *  assess) stegar/gatas i stället vid naturlig slutpunkt via stepComplete(). */
+  function armStepGating(step: Step): void {
+    if (!PRESENTATIONAL.includes(step.typ)) return
+    if (mode.value === 'gm') {
+      awaitingNext.value = true
+      return
+    }
+    if (paused.value) return
+    const override = (step as { dwellSeconds?: number }).dwellSeconds
+    scheduleDwell(override != null ? override * 1000 : DWELL_MS)
   }
 
   function init(): void {
@@ -99,11 +172,18 @@ export const useUtmanaStore = defineStore('utmana', () => {
     adapters.value.rig.onKnapp((e: KnappEvent) => onKnapp(e.plats, e.knapp))
     adapters.value.rig.onGm((e: GmEvent) => onGm(e))
     cue((r) => r.scen('attract'))
+    adapters.value.rig.status(statusSnapshot.value) // retained baslinje för spelledar-vyn
   }
 
-  // --- Val av format / läge ---
+  // --- Val av format / variant / läge ---
   function selectFormat(id: string): void {
     format.value = formatById(id) ?? formatById(DEFAULT_FORMAT_ID) ?? null
+    // Byte av format → återställ variant till den första (om formatet har varianter).
+    variantId.value = format.value?.varianter?.[0]?.id ?? null
+  }
+  /** Välj variant inom aktuellt format (t.ex. vilken Ändra dig-titel som körs). */
+  function selectVariant(id: string): void {
+    if (format.value?.varianter?.some((v) => v.id === id)) variantId.value = id
   }
   function setMode(m: Mode): void {
     mode.value = m
@@ -130,6 +210,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
   }
 
   function enterStep(): void {
+    clearDwell()
     awaitingNext.value = false
     const step = current.value
     if (!step) return finish()
@@ -160,6 +241,9 @@ export const useUtmanaStore = defineStore('utmana', () => {
       default:
         break
     }
+
+    // Steg-gating: self auto-stegar presentationssteg efter dwell, gm gatar dem.
+    armStepGating(step)
   }
 
   /** Ett steg är klart: self → nästa direkt; gm → vänta på spelledaren. */
@@ -173,12 +257,14 @@ export const useUtmanaStore = defineStore('utmana', () => {
 
   /** Gå till nästa steg (self auto, eller gm/nasta / facilitator). */
   function next(): void {
+    clearDwell()
     stepIndex.value = nextIndex(steps.value, stepIndex.value)
     if (isDone(steps.value, stepIndex.value)) return finish()
     enterStep()
   }
 
   function finish(): void {
+    clearDwell()
     started.value = false
     finished.value = true
     activePlats.value = 0
@@ -198,10 +284,15 @@ export const useUtmanaStore = defineStore('utmana', () => {
     votes.value = { ...votes.value, [key]: list }
     cue((r) => r.rost(plats, val))
     audio.play('confirm')
-    if (mode.value === 'self' && allSeatsVoted.value) {
-      window.setTimeout(() => {
-        if (stepType.value === 'vote' && allSeatsVoted.value) stepComplete()
-      }, 900)
+    if (allSeatsVoted.value) {
+      if (mode.value === 'self') {
+        window.setTimeout(() => {
+          if (stepType.value === 'vote' && allSeatsVoted.value) stepComplete()
+        }, 900)
+      } else {
+        // gm: alla har röstat → markera klart; spelledaren stegar via gm/nasta.
+        awaitingNext.value = true
+      }
     }
   }
 
@@ -249,11 +340,12 @@ export const useUtmanaStore = defineStore('utmana', () => {
       const turnList = turns.value.map((t) => ({ speaker: t.speaker, transcript: t.transcript }))
       const fraga = format.value?.fraga
       const facit = format.value?.facit
+      const alternativ = format.value?.alternativ?.map((a) => a.label)
       const out: SeatAssessment[] = []
       if (step.perPerson !== false && seatsToAssess.length) {
         for (const plats of seatsToAssess) {
           try {
-            const res = await ad!.assess.assess(step.configId, { turns: turnList, focus: `plats ${plats}`, fraga, facit }, { lang: config.lang, groupId: groupId.value })
+            const res = await ad!.assess.assess(step.configId, { turns: turnList, focus: `plats ${plats}`, fraga, facit, alternativ }, { lang: config.lang, groupId: groupId.value })
             out.push({ plats, band: str(res.assessment.band), svar_text: str(res.assessment.svar_text) || t('npc.error') })
           } catch (err) {
             console.warn('[utmana] assess misslyckades plats', plats, err)
@@ -262,7 +354,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
         }
       } else {
         // Ett anrop med gemensamt utfall (perPerson:false).
-        const res = await ad!.assess.assess(step.configId, { turns: turnList, fraga, facit }, { lang: config.lang, groupId: groupId.value })
+        const res = await ad!.assess.assess(step.configId, { turns: turnList, fraga, facit, alternativ }, { lang: config.lang, groupId: groupId.value })
         out.push({ plats: 0, band: str(res.assessment.band), svar_text: str(res.assessment.svar_text) || t('npc.error') })
       }
       assessments.value = out
@@ -312,6 +404,9 @@ export const useUtmanaStore = defineStore('utmana', () => {
       case 'format':
         selectFormat(e.value)
         break
+      case 'variant':
+        selectVariant(e.value)
+        break
       case 'mode':
         setMode(e.value === 'gm' ? 'gm' : 'self')
         break
@@ -320,6 +415,19 @@ export const useUtmanaStore = defineStore('utmana', () => {
         break
       case 'nasta':
         if (started.value) next()
+        break
+      case 'paus':
+        // 1 = pausa, 0 = fortsätt, tomt/annat = toggla.
+        if (e.value === '1') {
+          if (!paused.value) togglePause()
+        } else if (e.value === '0') {
+          if (paused.value) togglePause()
+        } else {
+          togglePause()
+        }
+        break
+      case 'reset':
+        reset()
         break
       case 'master':
         masterLocked.value = e.value === '1'
@@ -332,8 +440,15 @@ export const useUtmanaStore = defineStore('utmana', () => {
   // --- Facilitator ---
   function togglePause(): void {
     paused.value = !paused.value
+    if (paused.value) {
+      clearDwell()
+    } else if (started.value && mode.value === 'self' && current.value && !awaitingNext.value) {
+      // Återuppta dwell-nedräkningen för ett presentationssteg efter paus.
+      armStepGating(current.value)
+    }
   }
   function quitStation(): void {
+    clearDwell()
     try {
       adapters.value?.rig.close()
       window.close()
@@ -353,6 +468,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
   }
 
   function reset(): void {
+    clearDwell()
     resetRunData()
     started.value = false
     finished.value = false
@@ -384,13 +500,13 @@ export const useUtmanaStore = defineStore('utmana', () => {
 
   return {
     // state
-    format, mode, started, finished, stepIndex, awaitingNext, masterLocked,
+    format, variantId, mode, started, finished, stepIndex, awaitingNext, masterLocked,
     seats, groupId, playerNames, votes, turns, spokeSeats, assessments, facitRatt,
     activePlats, currentSpeakSeconds, turnEndSignal, assessing, speaking, paused,
     // derived
-    steps, current, stepType, currentMatpunkt, currentVotes, allSeatsVoted, delta,
+    steps, activeVariant, current, stepType, currentMatpunkt, currentVotes, allSeatsVoted, delta,
     // actions
-    init, selectFormat, setMode, start, next, stepComplete, enterStep,
+    init, selectFormat, selectVariant, setMode, start, next, stepComplete, enterStep,
     onKnapp, onGm, castVote, endTurn, speakNpc, togglePause, quitStation, reset,
     setPlayerName, displayName,
   }

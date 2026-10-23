@@ -1,0 +1,14 @@
+{
+  "dilemma": {
+    "typ": "image",
+    "aspect": "16:9",
+    "brief": "Filmstill (placeholder): gjuteri-VD vid skrivbord som lägger fram dilemmat. Ersätt med riktigt klipp när det finns.",
+    "file": "radgivaren-dilemma.svg"
+  },
+  "vad-hande": {
+    "typ": "image",
+    "aspect": "16:9",
+    "brief": "Filmstill (placeholder): företaget valde NY TEKNIK (robotcell) + fiktivt resultat. Ett exempel, inget facit. Ersätt med riktigt klipp.",
+    "file": "radgivaren-vad-hande.svg"
+  }
+}

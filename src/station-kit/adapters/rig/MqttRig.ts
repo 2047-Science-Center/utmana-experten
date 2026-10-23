@@ -8,7 +8,7 @@
  * aktiv_plats publiceras retained så en sent ansluten hjärna hamnar rätt.
  */
 import mqtt, { type MqttClient } from 'mqtt'
-import type { Rig, Scen, KnappEvent, GmEvent } from './Rig'
+import type { Rig, Scen, KnappEvent, GmEvent, StatusSnapshot } from './Rig'
 
 export class MqttRig implements Rig {
   private client: MqttClient
@@ -64,6 +64,10 @@ export class MqttRig implements Rig {
   }
   ljud(id: string): void {
     this.pub('ljud', id)
+  }
+  status(snapshot: StatusSnapshot): void {
+    // Retained → en sent ansluten spelledar-skärm får direkt aktuellt läge.
+    this.pub('status', JSON.stringify(snapshot), true)
   }
 
   onKnapp(cb: (e: KnappEvent) => void): void {

@@ -1,6 +1,7 @@
 {
   "id": "ta-parti",
   "namn": "Ta parti",
+  "beskrivning": "Två sidor, en knapp. Var står du — och varför?",
   "fraga": "Lön eller trygghet — vad väger tyngst när du väljer jobb?",
   "steps": [
     { "typ": "present", "contentId": "dilemma", "source": "screen" },

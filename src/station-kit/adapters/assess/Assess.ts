@@ -26,6 +26,8 @@ export type AssessInput =
       /** Valfri frågekontext (formatets fråga, facit-svaret) för regelverket. */
       fraga?: string
       facit?: string
+      /** Namngivna svarsalternativ (Rådgivaren) → ALTERNATIVEN i prompten. */
+      alternativ?: string[]
     }
 
 export interface AssessMeta {
