@@ -26,6 +26,8 @@ const STEP_LABEL: Record<Step['typ'], string> = {
   vote: 'Röstning',
   speak_round: 'Tänk-tur',
   assess: 'Bedömning',
+  gate: 'Redo?',
+  overlay: 'Tänk om',
   facit: 'Facit',
   feedback: 'Återkoppling',
   clip: 'Verklighet',

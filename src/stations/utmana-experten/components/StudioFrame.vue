@@ -16,11 +16,17 @@ const STEP_LABEL: Record<string, string> = {
   present: 'Fråga',
   speak_round: 'Motivering',
   assess: 'Expertens dom',
+  gate: 'Redo?',
+  overlay: 'Tänk om',
   facit: 'Facit',
   feedback: 'Återkoppling',
   clip: 'Verkligheten',
   reveal: 'Före → efter',
 }
+
+/** Övre vänstra hörnet = AKTIVITETEN som körs (format-namnet), inte stationens
+ *  varumärke. Samma logga, men märkt som aktivitet. */
+const activityName = computed(() => store.format?.namn ?? GAME_BRAND)
 
 const stepLabel = computed(() => {
   const s = store.current
@@ -44,7 +50,10 @@ const hud = computed(() => props.showHud && store.started)
             <circle cx="60" cy="58" r="26" fill="#d4682e" />
             <ellipse cx="60" cy="60" rx="48" ry="15" fill="none" stroke="#c89b5e" stroke-width="5" transform="rotate(-18 60 60)" />
           </svg>
-          {{ GAME_BRAND }}
+          <span class="brand__txt">
+            <span class="brand__eyebrow">Aktivitet</span>
+            <span class="brand__name">{{ activityName }}</span>
+          </span>
         </span>
         <span v-if="stepLabel" class="step">{{ stepLabel }}</span>
       </div>
@@ -53,3 +62,27 @@ const hud = computed(() => props.showHud && store.started)
     <span class="lamps t"></span><span class="lamps b"></span><span class="lamps l"></span><span class="lamps r"></span>
   </div>
 </template>
+
+<style scoped>
+/* Övre vänstra hörnet märks som AKTIVITETEN (liten orange etikett + namnet). */
+.brand__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18em;
+  line-height: 1;
+}
+.brand__eyebrow {
+  font-family: var(--f-text);
+  font-weight: 700;
+  font-size: 0.92cqw;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--orange, #d4682e);
+}
+.brand__name {
+  font-family: var(--f-disp);
+  font-weight: 800;
+  font-size: 2cqw;
+  color: var(--creme);
+}
+</style>

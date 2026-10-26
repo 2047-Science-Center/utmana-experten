@@ -1,5 +1,7 @@
 /**
- * Ljudmotor — SYNTETISERAD SFX via Web Audio (inga ljudfiler).
+ * Ljudmotor — spelar riktiga ljudfiler (ElevenLabs-cues i public/audio/) när de
+ * finns, annars faller tillbaka på SYNTETISERAD SFX via Web Audio. Så kiosken
+ * hör den sammanhållna ljudidentiteten, och allt funkar även utan filer.
  *
  * Kiosk-autoplay: AudioContext skapas låst och låses upp på första
  * användargesten (attract-/"tryck för att börja"-skärmen). Global mute + volym.
@@ -14,12 +16,17 @@ export type Sfx =
   | 'win' // vinst-fanfar
   | 'boot' // boot-sekvens
 
+/** Cues med en riktig ljudfil i public/audio/<namn>.mp3 (resten = syntton). */
+const FILE_CUES: Sfx[] = ['confirm', 'blip', 'boot', 'win', 'deny']
+
 class AudioEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   private _muted = false
   private _volume = 0.6
   private unlocked = false
+  /** Avkodade ljudfiler per cue (laddas vid unlock). Saknas → syntton. */
+  private buffers: Partial<Record<Sfx, AudioBuffer>> = {}
 
   get muted(): boolean {
     return this._muted
@@ -66,6 +73,36 @@ class AudioEngine {
       this.unlocked = false
     }
     void this.ctx?.resume()
+    void this.preload()
+  }
+
+  /** Hämta + avkoda ljudfilerna en gång (icke-kritiskt; faller tillbaka på
+   *  syntton om något saknas eller inte hinner laddas). */
+  private async preload(): Promise<void> {
+    const ctx = this.ctx
+    if (!ctx) return
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '')
+    await Promise.all(
+      FILE_CUES.map(async (name) => {
+        if (this.buffers[name]) return
+        try {
+          const res = await fetch(encodeURI(`${base}/audio/${name}.mp3`))
+          if (!res.ok) return
+          this.buffers[name] = await ctx.decodeAudioData(await res.arrayBuffer())
+        } catch {
+          /* ingen fil / avkodning misslyckades → syntton används */
+        }
+      }),
+    )
+  }
+
+  /** Spela en avkodad ljudfil som one-shot genom master-noden. */
+  private playBuffer(buf: AudioBuffer): void {
+    if (!this.ctx || !this.master) return
+    const src = this.ctx.createBufferSource()
+    src.buffer = buf
+    src.connect(this.master)
+    src.start()
   }
 
   /** En enkel ton med envelope. */
@@ -122,6 +159,12 @@ class AudioEngine {
 
   play(sfx: Sfx): void {
     if (this._muted || !this.ctx || !this.master) return
+    // Riktig ljudfil om den laddats, annars syntton (fallback).
+    const buf = this.buffers[sfx]
+    if (buf) {
+      this.playBuffer(buf)
+      return
+    }
     const now = this.ctx.currentTime
     switch (sfx) {
       case 'blip':

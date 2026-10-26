@@ -10,6 +10,8 @@ export type StepType =
   | 'vote'
   | 'speak_round'
   | 'assess'
+  | 'gate'
+  | 'overlay'
   | 'facit'
   | 'feedback'
   | 'clip'
@@ -47,6 +49,23 @@ export interface AssessStep {
   perPerson?: boolean
 }
 
+export interface GateStep {
+  typ: 'gate'
+  rubrik?: string
+  text?: string
+  /** Hur steget släpps vidare i SELF-läge. Default "alla-gront" = alla platser
+   *  trycker grönt (ja-knappen). I gm-läge gatar alltid spelledaren. */
+  slapp?: 'alla-gront'
+}
+
+export interface OverlayStep {
+  typ: 'overlay'
+  rubrik?: string
+  text?: string
+  /** self: hur länge kortet visas innan motorn auto-stegar (default DWELL). */
+  dwellSeconds?: number
+}
+
 export interface FacitStep {
   typ: 'facit'
   contentId: string
@@ -79,6 +98,8 @@ export type Step =
   | VoteStep
   | SpeakRoundStep
   | AssessStep
+  | GateStep
+  | OverlayStep
   | FacitStep
   | FeedbackStep
   | ClipStep
