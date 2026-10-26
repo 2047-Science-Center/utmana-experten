@@ -95,3 +95,47 @@ OBS 2-spelartest: appen står på `config.seats = 6`. "Alla grönt"-gaten (själ
 kräver att ALLA 6 platser trycker grönt → med 2 fysiska spelare: kör i spelledarläge
 (spelledaren gatar), ELLER sätt `config.seats = 2` i `src/config.ts` och bygg om för
 bänktestet (återställ till 6 för den stora riggen).
+
+---
+
+## En mic per spelare (hårdkodad, tänk-turen)
+
+Tänk-turen är turordnad (en talar i taget) och Web Speech binder mot systemets
+default-input. Så "en mic per spelare" = byt default-källan till den aktiva
+spelarens Volt-mic före varje tur. Gatewayn har `/mic/:plats` som kör
+`pactl set-default-source MIC_PLATS<plats>`; SpeakRoundStep anropar det före varje
+tur. **No-op om MIC_PLATS1/2 inte är satta** → oförändrat enmic-läge.
+
+**1. Lista mics på NUC:en** (uteslut monitor-loopback):
+```bash
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+pactl list short sources | grep -v '\.monitor$'
+```
+
+**2. Skilj de två (identiska) Volt-interfacen åt via fysisk USB-port** (stabilt):
+```bash
+pactl list sources | grep -E 'Name:|device.product.name|device.bus_path'
+```
+Para ihop varje `Name: alsa_input...Volt...` med dess `device.bus_path`
+(t.ex. `...usb-0:1:1.0` vs `...usb-0:2:1.0`). Bestäm: port A = plats 1, port B = plats 2.
+
+**3. Hårdkoda i `server/.env`:**
+```bash
+MIC_PLATS1=alsa_input.usb-Universal_Audio_Volt_2-...portA...
+MIC_PLATS2=alsa_input.usb-Universal_Audio_Volt_2-...portB...
+```
+```bash
+systemctl --user restart utmana-gateway
+```
+
+**4. Testa en källa:**
+```bash
+pactl set-default-source "$MIC_PLATS1" && parecord --device="$MIC_PLATS1" /tmp/t.wav
+# prata, Ctrl+C, sen: paplay /tmp/t.wav
+```
+Och att hooken svarar: `curl -s localhost:8787/mic/1` → `{"ok":true,...}`.
+
+> Gatewayn kör som `--user`-tjänst och ska ha `XDG_RUNTIME_DIR` i sin session så
+> pactl når PipeWire/PulseAudio. Svarar `/mic/1` med pactl-fel: lägg
+> `Environment=XDG_RUNTIME_DIR=/run/user/<uid>` i `~/.config/systemd/user/utmana-gateway.service`
+> och `systemctl --user daemon-reload && systemctl --user restart utmana-gateway`.

@@ -36,10 +36,24 @@ const liveText = computed(() => (useManual.value ? manualText.value : capture.tr
 const secondsLeft = computed(() => Math.max(0, Math.ceil((capture.remainingMs.value ?? 0) / 1000)))
 const timer = computed(() => `00:${String(secondsLeft.value).padStart(2, '0')}`)
 
-function startTurn(): void {
+/** Hårdkodad mic per spelare (valfritt): be gatewayn byta default-input till den
+ *  aktiva platsens mic FÖRE igenkänningen startar. Web Speech binder mot default-
+ *  inputen vid start, så bytet måste hinna klart först. No-op om MIC_PLATS<n>
+ *  saknas i server/.env → oförändrat enmic-beteende. Best-effort (fel sväljs). */
+async function switchMic(plats: number): Promise<void> {
+  if (!plats) return
+  try {
+    await fetch(`${config.assess.baseUrl}/mic/${plats}`)
+  } catch {
+    /* mic-byte misslyckades — kör vidare på default-micen */
+  }
+}
+
+async function startTurn(): Promise<void> {
   finalizing = false
   manualText.value = ''
   capture.reset()
+  await switchMic(store.activePlats)
   if (!useManual.value) capture.start()
 }
 function finalize(): void {
