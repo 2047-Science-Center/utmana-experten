@@ -10,6 +10,9 @@ coverage
 # gatewayns .env och ingenstans annars.
 .env
 .env.*
+# ...men mallarna SKA spåras (inga hemligheter i dem — installern kopierar dem).
+!.env.example
+!server/.env.example
 server/.env
 
 # Firmware-hemligheter (WiFi/MQTT) — committa bara *.example.h.
