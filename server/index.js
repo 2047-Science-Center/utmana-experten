@@ -16,6 +16,7 @@ import OpenAI from 'openai'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execFile } from 'node:child_process'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.join(__dirname, '.env') })
@@ -166,6 +167,26 @@ app.post('/speak', async (req, res) => {
     console.error('[gateway] /speak fel:', err)
     return res.status(500).json({ error: String(err.message || err) })
   }
+})
+
+/**
+ * /mic/:plats — HÅRDKODAD mic per spelare. Sätter systemets default-input till
+ * MIC_PLATS<plats> (ur server/.env) via `pactl set-default-source`. Tänk-turen
+ * (SpeakRoundStep) anropar detta FÖRE varje tur, så varje spelare talar i sin
+ * egen Volt-mic (Web Speech binder mot default-inputen). No-op om MIC_PLATS<n>
+ * saknas → oförändrat enmic-beteende. Linux/pactl (PulseAudio/PipeWire).
+ */
+app.get('/mic/:plats', (req, res) => {
+  const plats = String(req.params.plats || '').replace(/\D/g, '')
+  const src = plats ? process.env[`MIC_PLATS${plats}`] : ''
+  if (!src) return res.json({ ok: false, skipped: `ingen MIC_PLATS${plats || '?'} satt` })
+  execFile('pactl', ['set-default-source', src], (err) => {
+    if (err) {
+      console.warn('[gateway] /mic pactl-fel:', err.message)
+      return res.status(500).json({ ok: false, error: String(err.message) })
+    }
+    return res.json({ ok: true, plats: Number(plats), source: src })
+  })
 })
 
 // --- Servera den byggda appen (kiosk-drift: EN process, samma origin) ---
