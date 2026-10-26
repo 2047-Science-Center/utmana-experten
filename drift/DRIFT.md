@@ -56,3 +56,42 @@ mosquitto_sub -t 'utmanaexperten/#' -v       # allt på bussen (knapp, rost, out
 
 ## Extern broker
 `bash drift/mint/installera-mint.sh 192.168.0.23` → ingen lokal broker; gateway/hjärna/ESP pekar dit.
+
+---
+
+## Spelledarskärmen (eget fönster, annan skärm/enhet)
+
+Spelledaren sitter INTE på stationsskärmen. Öppna på en surfplatta/laptop på
+samma nät:
+
+```
+http://<nuc-ip>:8787/spelledare?mqtt=ws://<nuc-ip>:9001
+```
+
+- `<nuc-ip>` = stationslådans IP (installera-mint.sh skriver ut den; annars `hostname -I`).
+- Stationen själv kör `…/?mqtt=ws://localhost:9001` (satt av installern).
+- Brokern binder `0.0.0.0:9001` → surfplattan når den över LAN.
+- `?mqtt=` kan utelämnas → fönstret frågar efter broker-URL och sparar den lokalt.
+- I fönstret: välj format + variant (EXEMPEL-raden) + läge, START · NÄSTA ▸ (pulsar
+  när motorn gatat) · PAUS · MASTER · OMSTART, och testknappar per plats.
+- Söm: fönstret publicerar `utmanaexperten/gm/*` + `knapp`, speglar motorn via
+  retained `utmanaexperten/status`. Samma söm som Blocks-dirigenten.
+
+## Arkadknappar (ESP32, Erik-riggen)
+
+Testrigg = 2 spelare × ja/nej/kanske (6 knappar). Firmware:
+`bestallning-erik/utmana_rigg_test2_esp32s3eth/` (Waveshare ESP32-S3-ETH, WiFi).
+
+1. `cd bestallning-erik/utmana_rigg_test2_esp32s3eth && cp secrets.example.h secrets.h`
+   → fyll WIFI_SSID/WIFI_PASS + `MQTT_HOST` = NUC:ens IP.
+2. Arduino IDE: kort "ESP32S3 Dev Module", USB CDC On Boot: Enabled, PSRAM "OPI PSRAM",
+   Flash 8MB. Bibliotek: FastLED, PubSubClient, ArduinoJson. Flasha.
+3. Pinnar: plats 1 ja=GPIO15 / nej=16 / kanske=17 · plats 2 ja=18 / nej=1 / kanske=2.
+   LED-DIN = GPIO38. Gemensam GND. Knapp = GPIO→GND (INPUT_PULLUP).
+4. Verifiera på NUC: `mosquitto_sub -t 'utmanaexperten/knapp' -v` → tryck knapp →
+   `{"plats":1,"knapp":"ja"}`. (Eller seriemonitor: 't' = plats 1 "ja".)
+
+OBS 2-spelartest: appen står på `config.seats = 6`. "Alla grönt"-gaten (självgående)
+kräver att ALLA 6 platser trycker grönt → med 2 fysiska spelare: kör i spelledarläge
+(spelledaren gatar), ELLER sätt `config.seats = 2` i `src/config.ts` och bygg om för
+bänktestet (återställ till 6 för den stora riggen).

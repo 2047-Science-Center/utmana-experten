@@ -33,13 +33,17 @@ const SCEN_OF: Partial<Record<Step['typ'], Scen>> = {
   present: 'present',
   vote: 'vote',
   speak_round: 'speak',
+  gate: 'present',
+  overlay: 'present',
   facit: 'facit',
   feedback: 'facit',
   clip: 'reality',
   reveal: 'verdict',
 }
 
-const PRESENTATIONAL: Step['typ'][] = ['present', 'clip', 'facit', 'feedback', 'reveal']
+// Presentationssteg: auto-stegar i self (dwell), gatas i gm. (gate hanteras
+// separat — den väntar på alla-grönt i self.)
+const PRESENTATIONAL: Step['typ'][] = ['present', 'overlay', 'clip', 'facit', 'feedback', 'reveal']
 
 /** self: hur länge ett presentationssteg visas innan motorn auto-stegar (obemannad
  *  drift). Överstyrs per steg med `dwellSeconds` i format-configen. gm struntar i
@@ -70,6 +74,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
   const spokeSeats = ref<number[]>([])
   const assessments = ref<SeatAssessment[]>([])
   const facitRatt = ref<string | null>(null)
+  const readySeats = ref<number[]>([]) // gate-steget (self): platser som tryckt grönt
 
   // --- Tänk-tur ---
   const activePlats = ref(0)
@@ -156,6 +161,12 @@ export const useUtmanaStore = defineStore('utmana', () => {
    *  och gatas i gm (väntar på spelledaren). Interaktiva steg (vote/speak_round/
    *  assess) stegar/gatas i stället vid naturlig slutpunkt via stepComplete(). */
   function armStepGating(step: Step): void {
+    // gate: gm → spelledaren gatar; self → vänta på alla-grönt (ingen dwell).
+    if (step.typ === 'gate') {
+      readySeats.value = []
+      if (mode.value === 'gm') awaitingNext.value = true
+      return
+    }
     if (!PRESENTATIONAL.includes(step.typ)) return
     if (mode.value === 'gm') {
       awaitingNext.value = true
@@ -381,6 +392,16 @@ export const useUtmanaStore = defineStore('utmana', () => {
   // --- EN inväg för knapp (hårdvara MQTT + on-screen) ---
   function onKnapp(plats: number, knapp: string): void {
     const step = current.value
+    // gate (self): alla trycker GRÖNT (ja). När alla platser tryckt → vidare.
+    if (step?.typ === 'gate') {
+      if (mode.value === 'self' && knapp === 'ja' && !readySeats.value.includes(plats)) {
+        readySeats.value = [...readySeats.value, plats]
+        audio.play('confirm')
+        cue((r) => r.rost(plats, 'ja'))
+        if (seats.value.every((s) => readySeats.value.includes(s))) stepComplete()
+      }
+      return
+    }
     const action = interpretKnapp({
       stepType: step?.typ ?? null,
       plats,
@@ -463,6 +484,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
     spokeSeats.value = []
     assessments.value = []
     facitRatt.value = null
+    readySeats.value = []
     activePlats.value = 0
     paused.value = false
   }
@@ -501,7 +523,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
   return {
     // state
     format, variantId, mode, started, finished, stepIndex, awaitingNext, masterLocked,
-    seats, groupId, playerNames, votes, turns, spokeSeats, assessments, facitRatt,
+    seats, groupId, playerNames, votes, turns, spokeSeats, assessments, facitRatt, readySeats,
     activePlats, currentSpeakSeconds, turnEndSignal, assessing, speaking, paused,
     // derived
     steps, activeVariant, current, stepType, currentMatpunkt, currentVotes, allSeatsVoted, delta,

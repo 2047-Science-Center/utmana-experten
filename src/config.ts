@@ -18,8 +18,9 @@ export const config = {
   stationN: STATION_N,
   lang: 'sv' as Lang,
 
-  /** Antal platser (tävlande). Prototyp = 1; drift upp till 6. */
-  seats: 6,
+  /** Antal platser (tävlande). ⚠ BÄNKTEST (Erik-riggen, 2 spelare) = 2.
+   *  SKARP RIGG = 6 — ändra tillbaka och bygg om (npm run build:kiosk) vid driftsättning. */
+  seats: 2,
 
   /** Tänk-tur per plats (speak_round-default, överstyrs per steg i format-configen). */
   speakSeconds: 15,
