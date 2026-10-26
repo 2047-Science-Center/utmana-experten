@@ -1,10 +1,11 @@
 /*
  * Utmana experten — TESTRIGG 2 SPELARE (Waveshare ESP32-S3-ETH) · Arduino-sketch
  * ===================================================================
- * Simulerar TVÅ spelare: 6 arkadknappar (plats 1 & 2 × JA/NEJ/KANSKE) + en kort
- * WS2812B-list uppdelad i 2 platser. Samma frysta söm som den stora riggen —
- * dum renderare (LED-primitiver in) + knapp→MQTT ut. Kör på WiFi (enklast för
- * bänktest); pinnarna undviker W5500 så kortets Ethernet går att slå på i drift.
+ * Simulerar TVÅ spelare: 6 arkadknappar (plats 1 & 2 × JA/NEJ/KANSKE) + en
+ * WS2812B-strip på 30 px uppdelad i 2 platser (15 px vardera). Samma frysta söm
+ * som den stora riggen — dum renderare (LED-primitiver in) + knapp→MQTT ut.
+ * Kör på WiFi (enklast för bänktest); pinnarna undviker W5500 så kortets Ethernet
+ * går att slå på i drift.
  *
  *   IN  (hjärna → ESP, LED):
  *     utmanaexperten/out/led/<1-2>            {h,s,v,puls,blink}  hela platsen
@@ -13,11 +14,13 @@
  *   UT  (ESP → app, KNAPP):
  *     utmanaexperten/knapp                     {plats,knapp}        vid nedtryck
  *
- * KORT: Waveshare ESP32-S3-ETH. Undvikna pinnar: W5500 (9–14), SD (4–7),
- *       PSRAM (33–37), USB (19/20), UART (43/44), strapping (0/3/45/46), RGB (21).
+ * KORT: Waveshare ESP32-S3-ETH (ESP32-S3R8: OPI PSRAM + 16 MB flash). Verifierat
+ *       mot kortets pinout. Upptaget på kortet (undvik): W5500 (GPIO9–14),
+ *       SD (GPIO4–7), USB (GPIO19/20), UART0 (GPIO43/44), strapping (0/3/45/46),
+ *       inbyggd RGB-LED (GPIO38).
  *
- * ARDUINO IDE: kort "ESP32S3 Dev Module", USB CDC On Boot: Enabled,
- *              PSRAM: "OPI PSRAM", Flash 8MB. Bibliotek: FastLED, PubSubClient, ArduinoJson.
+ * ARDUINO IDE: kort "ESP32S3 Dev Module", USB CDC On Boot: Enabled, PSRAM: "OPI PSRAM",
+ *              Flash Size: 16MB. Bibliotek: FastLED, PubSubClient, ArduinoJson.
  * Testa utan knapp: skicka 't' i seriemonitorn (= tryck plats 1, "ja").
  */
 
@@ -31,16 +34,23 @@ const uint16_t MQTT_PORT   = 1883;
 const char*    MQTT_CLIENT = "utmana-rigg-test2";
 const char*    ROOT        = "utmanaexperten";
 
-// ===================== LED (kort list, 2 platser) =====================
-#define LED_PIN     38               // GPIO38 → strippens DIN (fri på ETH-kortet)
-#define NUM_LEDS    20               // kort testlist: 2 platser × 10 px. Byt efter din strip.
+// ===================== LED (WS2812B-strip, 2 platser × 15 px) =====================
+// Strip-DIN på GPIO38. OBS: GPIO38 är även kortets INBYGGDA RGB-LED (WS2812) — se pinout.
+// Vanligast (ombordets RGB i PARALLELL på stiftet): strippen visar px 0–29 rätt och
+// ombordets RGB speglar bara pixel 0 → behåll NUM_LEDS=30 nedan.
+// Om strippen i stället ser 1 px FÖRSKJUTEN ut (ombordets RGB sitter i SERIE före
+// strippen): sätt NUM_LEDS=31 och SEAT_STARTS/ENDS = {1,16}/{15,30}.
+// (Vill du slippa helt: flytta strip-DIN till en ren fri pin, t.ex. GPIO48 eller GPIO47.)
+#define LED_PIN     38
+#define NUM_LEDS    30               // 2 platser × 15 px
 #define NUM_SEATS   2
 #define BRIGHTNESS  160
-int SEAT_STARTS[NUM_SEATS] = { 0, 10 };   // plats 1 = px 0–9, plats 2 = px 10–19
-int SEAT_ENDS[NUM_SEATS]   = { 9, 19 };
+int SEAT_STARTS[NUM_SEATS] = {  0, 15 };   // plats 1 = px 1–15 (index 0–14), plats 2 = px 16–30 (index 15–29)
+int SEAT_ENDS[NUM_SEATS]   = { 14, 29 };
 
 // ===================== KNAPPAR (6 st = 2 spelare × ja/nej/kanske) =====================
-// Varje knapp: GPIO → knapp → GND (INPUT_PULLUP, tryck = LOW).
+// Varje knapp: GPIO → knapp → GND (INPUT_PULLUP, tryck = LOW). Verifierat mot pinout:
+// alla fria GPIO, ingen krock med W5500/SD/USB/UART/strapping.
 #define BTN_COUNT 6
 const int   btnPins[BTN_COUNT]  = {   15,    16,       17,     18,     1,        2   };
 const int   btnPlats[BTN_COUNT] = {    1,     1,        1,      2,     2,        2   };
@@ -134,7 +144,7 @@ void connectMqtt() {
 }
 
 void setup() {
-  Serial.begin(115200); delay(300); Serial.println(F("\n[test2] start (ESP32-S3-ETH, 2 spelare)"));
+  Serial.begin(115200); delay(300); Serial.println(F("\n[test2] start (ESP32-S3-ETH, 2 spelare, 30 px)"));
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS); FastLED.setBrightness(BRIGHTNESS); FastLED.clear(true);
   for (int b = 0; b < BTN_COUNT; b++) { pinMode(btnPins[b], INPUT_PULLUP); lastReading[b] = HIGH; btnState[b] = HIGH; lastChange[b] = 0; }
   WiFi.mode(WIFI_STA); WiFi.begin(WIFI_SSID, WIFI_PASS);
