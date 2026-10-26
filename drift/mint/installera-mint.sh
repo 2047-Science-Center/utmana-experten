@@ -123,7 +123,9 @@ sudo loginctl enable-linger "$USER" 2>/dev/null || true
 
 # --- Kiosk-skript (Google Chrome, Web Speech, mic auto-godkänd, Anker-ljud) ---
 mkdir -p "$HOME/.local/bin"
-KIOSK_URL="http://localhost:${PORT}/?mqtt=ws://localhost:9001"
+# App:en pratar MQTT-over-WS mot brokern. Lokal broker → localhost; husets broker
+# (t.ex. 192.168.0.23) → den IP:n. $BROKER är "localhost" eller den externa adressen.
+KIOSK_URL="http://localhost:${PORT}/?mqtt=ws://${BROKER}:9001"
 cat > "$HOME/.local/bin/utmana-kiosk.sh" <<EOF
 #!/usr/bin/env bash
 # Utmana experten kiosk — genererad av installera-mint.sh. Startas från skrivbordsikonen.

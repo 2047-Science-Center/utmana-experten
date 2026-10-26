@@ -14,7 +14,7 @@
     { "typ": "present", "contentId": "titel", "source": "screen" },
     { "typ": "vote", "val": ["ja", "nej", "kanske"], "matpunkt": "fore" },
     { "typ": "speak_round", "sekunder": 15 },
-    { "typ": "gate", "rubrik": "Är du redo?", "text": "Dags att se hur yrket ser ut i verkligheten.", "slapp": "alla-gront" },
+    { "typ": "gate", "rubrik": "Är du redo?", "text": "Att se hur det här yrket ser ut i verkligheten?", "slapp": "alla-gront" },
     { "typ": "clip", "contentId": "klipp", "rubrik": "Så ser jobbet faktiskt ut" },
     { "typ": "overlay", "rubrik": "Vill du ändra dig?", "text": "Nu när du har sett hur det ser ut i verkligheten.", "dwellSeconds": 6 },
     { "typ": "vote", "val": ["ja", "nej"], "matpunkt": "efter" },
