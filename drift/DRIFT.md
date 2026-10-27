@@ -55,7 +55,10 @@ mosquitto_sub -t 'utmanaexperten/#' -v       # allt på bussen (knapp, rost, out
 - **9001 vägrar** → apt-mosquitto utan websockets-stöd; kolla `/etc/mosquitto/conf.d/utmana.conf` + `journalctl -u mosquitto`.
 
 ## Extern broker
-`bash drift/mint/installera-mint.sh 192.168.0.23` → ingen lokal broker; gateway/hjärna/ESP pekar dit.
+`bash drift/mint/installera-mint.sh 192.168.0.23` → hjärna + ESP pratar rå 1883 mot husets
+broker; **en lokal mosquitto-WS-brygga (9001 → `192.168.0.23:1883`) sätts upp automatiskt**
+för webbläsar-appen (browsern kan inte prata rå MQTT, och husets broker serverar inte browser-WS).
+Appen pekar på `ws://localhost:9001` (bryggan). Allt `utmanaexperten/#` flödar ändå till/från husets broker.
 
 ---
 
