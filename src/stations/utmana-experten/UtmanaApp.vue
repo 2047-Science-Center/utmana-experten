@@ -5,7 +5,7 @@
  * (store) är oförändrad; detta är vyerna. Facilitator/pilot-panel/mute ligger
  * som fixed-overlays utanför scenen så de aldrig klipps.
  */
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { audio } from '@/station-kit/audio/AudioEngine'
 import { useUtmanaStore } from './store/utmanaStore'
 import { DEFAULT_FORMAT_ID } from './formats'
@@ -22,14 +22,24 @@ const store = useUtmanaStore()
 const booted = ref(false)
 const picked = ref(false) // format valt i väljaren → vidare till incheckning
 
+/** Attract-vyn visas (för-start) → spela attract-bädden. */
+const onAttract = computed(() => !booted.value && !store.started && !store.finished)
+
 onMounted(() => {
   store.init()
   if (!store.format) store.selectFormat(DEFAULT_FORMAT_ID)
+  // Kiosk-Chrome kör med --autoplay-policy=no-user-gesture-required → bädden
+  // kan starta direkt; i vanlig webbläsare startar den vid första gesten.
+  audio.unlock()
+  if (onAttract.value) audio.playLoop('attract-loop')
 })
+// Starta/stoppa attract-bädden när vi går in i / lämnar attract.
+watch(onAttract, (v) => (v ? audio.playLoop('attract-loop') : audio.stopLoop('attract-loop')))
 
 function onAttractStart() {
   booted.value = true
   audio.unlock()
+  audio.stopLoop('attract-loop')
   audio.play('boot')
   // Går till format-väljaren; därefter incheckning (namn) → omgång.
 }

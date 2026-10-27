@@ -3,11 +3,17 @@
  *  KÖR ▸ sparar ifyllda namn och startar omgången. */
 import { ref } from 'vue'
 import { useUtmanaStore } from '../store/utmanaStore'
+import { audio } from '@/station-kit/audio/AudioEngine'
 import { seatName } from '@/config'
 
 const store = useUtmanaStore()
 const emit = defineEmits<{ done: [] }>()
 const names = ref<Record<number, string>>({})
+
+/** Litet varmt kvitto när ett namn skrivs in. */
+function nameEntered(n: number): void {
+  if ((names.value[n] ?? '').trim()) audio.play('namn-klar')
+}
 
 function go() {
   for (const n of store.seats) {
@@ -31,6 +37,7 @@ function go() {
           class="checkin__input"
           maxlength="18"
           autocomplete="off"
+          @change="nameEntered(n)"
           @keyup.enter="go"
         />
       </label>

@@ -4,6 +4,7 @@
  *  valfri add-on bakom flaggan (av). Self-läge: klick = fortsätt. */
 import { computed, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
+import { audio } from '@/station-kit/audio/AudioEngine'
 
 const store = useUtmanaStore()
 
@@ -22,6 +23,8 @@ const plates = computed(() =>
 onMounted(() => {
   const first = store.assessments[0]
   if (first) void store.speakNpc(first.svar_text)
+  // "AI-domen landar" — en varm cue per person (lätt staplat).
+  plates.value.forEach((_, i) => window.setTimeout(() => audio.play('dom-landar'), i * 450))
 })
 
 function advance() {

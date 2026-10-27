@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /** reveal — före→efter-glappet (Designförslag B): stort delta + fördelnings-
  *  staplar + ljus-svep. Self-läge: klick = fortsätt (avslutar rundan). */
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
+import { audio } from '@/station-kit/audio/AudioEngine'
 import { slotsOf } from '../../engine/voteSlots'
 
 const store = useUtmanaStore()
@@ -14,6 +15,12 @@ const SLOTS = computed(() => slotsOf(store.format))
 const named = computed(() => Boolean(store.format?.alternativ?.length))
 
 const d = computed(() => store.delta)
+
+// Payoff-sting efter pre-reveal-risern (som spelas i storen vid reveal-inträde):
+// "X tänkte om" vs "ni stod fast".
+onMounted(() => {
+  window.setTimeout(() => audio.play(d.value.andrade > 0 ? 'utfall-tankte-om' : 'utfall-stod-fast'), 850)
+})
 const maxN = computed(() => {
   const all = [...Object.values(d.value.fore), ...Object.values(d.value.efter), 1]
   return Math.max(...all)

@@ -2,8 +2,9 @@
 /** overlay — ett kort mellanspel som animeras in (t.ex. "Vill du ändra dig?"
  *  efter klippet). Presentationssteg: self auto-stegar efter dwell, gm gatar.
  *  Klick = fortsätt i self. StepStage korsfadar till nästa vy när den lämnar. */
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
+import { audio } from '@/station-kit/audio/AudioEngine'
 import type { OverlayStep } from '../../engine/types'
 
 const props = defineProps<{ step: OverlayStep }>()
@@ -15,6 +16,8 @@ const text = computed(() => props.step.text ?? '')
 function advance() {
   if (store.mode === 'self') store.next()
 }
+
+onMounted(() => audio.play('overlay-chime'))
 </script>
 
 <template>

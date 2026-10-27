@@ -228,7 +228,15 @@ export const useUtmanaStore = defineStore('utmana', () => {
     const scen = SCEN_OF[step.typ]
     if (scen) cue((r) => r.scen(scen))
 
+    // Ljud-bäddar: stoppa tänk-bädden när vi lämnar tänk-turen; häv duckningen
+    // utanför klippet. (bearbetar-bädden styrs i runAssess.)
+    if (step.typ !== 'speak_round') audio.stopLoop('tank-badd')
+    if (step.typ !== 'clip') audio.duck(false)
+
     switch (step.typ) {
+      case 'present':
+        audio.play('fraga-anslag')
+        break
       case 'vote':
         activePlats.value = 0
         cue((r) => r.aktivPlats(0))
@@ -239,15 +247,24 @@ export const useUtmanaStore = defineStore('utmana', () => {
       case 'assess':
         void runAssess(step as AssessStep)
         break
+      case 'gate':
+        audio.play('gate-in')
+        break
+      case 'clip':
+        audio.duck(true) // sänk ev. bädd så klippets eget ljud får plats
+        audio.play('pre-klipp')
+        break
       case 'facit': {
         const ratt = (step as FacitStep).ratt ?? format.value?.facit ?? null
         facitRatt.value = ratt
         if (ratt) cue((r) => r.facitRatt(ratt))
+        audio.play('facit')
         break
       }
       case 'reveal':
+        // riser → payoff: pre-reveal bygger, RevealStep spelar utfalls-stingen.
+        audio.play('pre-reveal')
         cue((r) => r.ljud('fanfar'))
-        audio.play('win')
         break
       default:
         break
@@ -306,6 +323,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
     cue((r) => r.rost(plats, ledSlot(val)))
     audio.play('confirm')
     if (allSeatsVoted.value) {
+      audio.play('alla-rostat')
       if (mode.value === 'self') {
         window.setTimeout(() => {
           if (stepType.value === 'vote' && allSeatsVoted.value) stepComplete()
@@ -325,6 +343,8 @@ export const useUtmanaStore = defineStore('utmana', () => {
     const first = nextSeat(seats.value, 0)
     activePlats.value = first ?? 0
     if (first) {
+      audio.playLoop('tank-badd')
+      audio.play('din-tur')
       cue((r) => r.aktivPlats(first))
       cue((r) => r.timer(first, currentSpeakSeconds.value))
     } else {
@@ -354,6 +374,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
   // --- AI-bedömning (per person, frysta multi-speaker-kontraktet) ---
   async function runAssess(step: AssessStep): Promise<void> {
     assessing.value = true
+    audio.playLoop('bearbetar') // "bearbetar"-bädd medan AI tänker
     assessments.value = []
     const ad = adapters.value
     const seatsToAssess = spokeSeats.value.length ? spokeSeats.value : seats.value.filter((s) => turns.value.some((t) => t.speaker === `plats ${s}`))
@@ -384,6 +405,8 @@ export const useUtmanaStore = defineStore('utmana', () => {
       assessments.value = seatsToAssess.map((plats) => ({ plats, svar_text: t('npc.error') }))
     } finally {
       assessing.value = false
+      audio.stopLoop('bearbetar')
+      audio.play('bedomning-klar')
       stepComplete()
     }
   }
@@ -412,9 +435,12 @@ export const useUtmanaStore = defineStore('utmana', () => {
     if (step?.typ === 'gate') {
       if (mode.value === 'self' && knapp === 'ja' && !readySeats.value.includes(plats)) {
         readySeats.value = [...readySeats.value, plats]
-        audio.play('confirm')
+        audio.play('redo')
         cue((r) => r.rost(plats, 'ja'))
-        if (seats.value.every((s) => readySeats.value.includes(s))) stepComplete()
+        if (seats.value.every((s) => readySeats.value.includes(s))) {
+          audio.play('alla-gront')
+          stepComplete()
+        }
       }
       return
     }
