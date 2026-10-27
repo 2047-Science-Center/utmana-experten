@@ -33,8 +33,8 @@ const SCEN_OF: Partial<Record<Step['typ'], Scen>> = {
   present: 'present',
   vote: 'vote',
   speak_round: 'speak',
-  gate: 'present',
-  overlay: 'present',
+  gate: 'gate',
+  overlay: 'overlay',
   facit: 'facit',
   feedback: 'facit',
   clip: 'reality',
@@ -285,6 +285,16 @@ export const useUtmanaStore = defineStore('utmana', () => {
   }
 
   // --- Röstning (arkadknapp) ---
+  /** Röst-val → fysisk positions-slot (nej/kanske/ja) för LED-cuen. ja/nej/kanske
+   *  → sig själva; namngivna alternativ → sloten på samma index (knappordning),
+   *  så hjärnan tänder rätt tredjedel i positionsfärg (färgkonsekvent med skärmen:
+   *  index 0=röd/nej, 1=gul/kanske, 2=grön/ja). Själva rösten lagras oförändrad. */
+  function ledSlot(val: string): string {
+    if (val === 'ja' || val === 'nej' || val === 'kanske') return val
+    const i = format.value?.alternativ?.findIndex((a) => a.id === val) ?? -1
+    return i >= 0 ? ['nej', 'kanske', 'ja'][i] ?? val : val
+  }
+
   function castVote(plats: number, val: string): void {
     const key = currentMatpunkt.value
     if (!key) return
@@ -293,7 +303,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
     if (i >= 0) list[i] = { plats, val }
     else list.push({ plats, val })
     votes.value = { ...votes.value, [key]: list }
-    cue((r) => r.rost(plats, val))
+    cue((r) => r.rost(plats, ledSlot(val)))
     audio.play('confirm')
     if (allSeatsVoted.value) {
       if (mode.value === 'self') {
@@ -376,6 +386,12 @@ export const useUtmanaStore = defineStore('utmana', () => {
       assessing.value = false
       stepComplete()
     }
+  }
+
+  /** Skicka timer-cue för aktiv plats (tänk-turen använder den för countdown:
+   *  hjärnan gör röd puls på platsen sista sekunderna). */
+  function cueTimer(sekunder: number): void {
+    if (activePlats.value) cue((r) => r.timer(activePlats.value, sekunder))
   }
 
   async function speakNpc(text: string): Promise<void> {
@@ -529,7 +545,7 @@ export const useUtmanaStore = defineStore('utmana', () => {
     steps, activeVariant, current, stepType, currentMatpunkt, currentVotes, allSeatsVoted, delta,
     // actions
     init, selectFormat, selectVariant, setMode, start, next, stepComplete, enterStep,
-    onKnapp, onGm, castVote, endTurn, speakNpc, togglePause, quitStation, reset,
+    onKnapp, onGm, castVote, endTurn, speakNpc, cueTimer, togglePause, quitStation, reset,
     setPlayerName, displayName,
   }
 })
