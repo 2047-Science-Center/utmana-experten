@@ -27,6 +27,9 @@ SPOT_LOOK = {"h": 0, "s": 0, "v": 90, "puls": 50}          # aktiv plats: din tu
 DIM_LOOK = {"h": 30, "s": 40, "v": 12}                      # övriga platser dämpade
 ATTRACT_LOOK = {"h": 200, "s": 60, "v": 18, "puls": 20}
 NEUTRAL_LOOK = {"h": 35, "s": 30, "v": 20}                 # vänteläge under röstning
+GATE_LOOK = {"h": 35, "s": 70, "v": 25, "puls": 45}        # "Är du redo?" — varm förväntan
+OVERLAY_LOOK = {"h": 25, "s": 60, "v": 20, "puls": 28}     # "Vill du ändra dig?" — eftertänksam
+COUNTDOWN_LOOK = {"h": 0, "s": 100, "v": 85, "puls": 85}   # timer sista 5 s — röd puls på platsen
 OFF = {"h": 0, "s": 0, "v": 0}
 
 # röst/facit → tredjedel (ja=1, nej=2, kanske=3) + färg
@@ -101,6 +104,10 @@ def apply_scen(payload):
         set_fx("none"); set_all(NEUTRAL_LOOK)   # nollställer tredjedelar → nya röster syns
     elif payload == "speak":
         set_fx("none"); set_all(DIM_LOOK)
+    elif payload == "gate":
+        set_fx("none"); set_all(GATE_LOOK)   # "Är du redo?"; gröna tändas vid redo (rost ja)
+    elif payload == "overlay":
+        set_fx("none"); set_all(OVERLAY_LOOK)  # "Vill du ändra dig?"
     elif payload == "facit":
         set_fx("none")
     elif payload == "reality":
@@ -138,6 +145,18 @@ def apply_facit(payload):
             set_third(n, k, lit)     # rätt svar tänds/blinkar på ALLA platser
 
 
+def apply_timer(payload):
+    try:
+        d = json.loads(payload)
+    except Exception:
+        return
+    plats = int(d.get("plats", 0) or 0)
+    sek = d.get("sekunder")
+    # Röd puls på den aktiva platsen sista sekunderna. Nästa aktiv_plats återställer.
+    if plats and isinstance(sek, (int, float)) and 0 < sek <= 5:
+        set_seat(plats, COUNTDOWN_LOOK)
+
+
 def handle_gm(sub, payload):
     global master
     if sub == "master":
@@ -167,7 +186,8 @@ def on_semantic(topic, payload):
         apply_facit(payload)
     elif topic == f"{ROOT}/ljud":
         play(payload)
-    # timer hanteras av on-screen-klockan i pilot; brain kan lägga countdown-fx sen
+    elif topic == f"{ROOT}/timer":
+        apply_timer(payload)
 
 
 def main():

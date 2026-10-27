@@ -15,7 +15,7 @@
  *   IN (ESP/hjärna/spelledare→app): <root>/knapp {plats,knapp} · <root>/gm/<cmd> <value>
  */
 
-export type Scen = 'attract' | 'present' | 'vote' | 'speak' | 'facit' | 'reality' | 'verdict'
+export type Scen = 'attract' | 'present' | 'vote' | 'speak' | 'gate' | 'overlay' | 'facit' | 'reality' | 'verdict'
 
 export interface KnappEvent {
   plats: number
