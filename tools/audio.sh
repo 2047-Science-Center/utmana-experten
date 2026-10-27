@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Ljud-enhet för Utmana experten — mic IN + ljud UT (en "sink").
-# Speglar Minnestestets mönster: MIC_SOURCE / AUDIO_SINK (default = Anker),
+# Speglar Minnestestets mönster: MIC_SOURCE / AUDIO_SINK (default = Volt),
 # som sätter SYSTEMETS default-enhet → Web Speech (Chrome) och afplay/hjärnan
 # följer den. Cross-platform:
 #   macOS → SwitchAudioSource (CoreAudio);  NUC/Linux → pactl (PulseAudio, = minnestest).
 # Byt i terminalen utan att starta om spelet.
 #
-#   tools/audio.sh                 # sätt in+ut till default (Anker)
+#   tools/audio.sh                 # sätt in+ut till default (Volt)
 #   tools/audio.sh out "<namn>"    # byt bara högtalare
 #   tools/audio.sh in  "<namn>"    # byt bara mic
 #   tools/audio.sh status          # visa nuvarande in/ut
@@ -15,8 +15,11 @@
 # Överstyr default: MIC_SOURCE="..." AUDIO_SINK="..." tools/audio.sh
 set -euo pipefail
 
-MIC_SOURCE="${MIC_SOURCE:-Anker PowerConf S330}"
-AUDIO_SINK="${AUDIO_SINK:-Anker PowerConf S330}"
+# EN delad Volt-mic lyssnar på alla spelare (turordning ger rätt plats). Finns
+# flera Volt-interface tas det FÖRSTA (substring-match nedan) — det är den mic
+# båda spelarna pratar i. Överstyr med MIC_SOURCE=... vid behov.
+MIC_SOURCE="${MIC_SOURCE:-Volt}"
+AUDIO_SINK="${AUDIO_SINK:-Volt}"
 OS="$(uname)"
 
 die() { echo "audio.sh: $*" >&2; exit 1; }
@@ -35,7 +38,7 @@ setdev() { # typ(input|output)  namn
     list="$(pactl list short "$kind" | awk '{print $2}')"
     # input: uteslut .monitor (loopback av UTgången, inte en mikrofon)
     [ "$1" = "input" ] && list="$(printf '%s\n' "$list" | grep -v '\.monitor$' || true)"
-    # exakt → hel delsträng → FÖRSTA ordet ("Anker" matchar alsa_input.usb-ANKER_Anker_PowerConf_S330…)
+    # exakt → hel delsträng → FÖRSTA ordet ("Volt" matchar alsa_input.usb-Universal_Audio_Volt_2_…)
     dev="$(printf '%s\n' "$list" | grep -ixF "$2" | head -1 || true)"
     [ -z "$dev" ] && dev="$(printf '%s\n' "$list" | grep -iF "$2" | head -1 || true)"
     [ -z "$dev" ] && dev="$(printf '%s\n' "$list" | grep -iF "${2%% *}" | head -1 || true)"
@@ -64,7 +67,7 @@ status() {
 }
 
 case "${1:-default}" in
-  default|anker) setdev output "$AUDIO_SINK"; setdev input "$MIC_SOURCE" ;;
+  default|volt) setdev output "$AUDIO_SINK"; setdev input "$MIC_SOURCE" ;;
   out)  setdev output "${2:?ange enhetsnamn, t.ex. tools/audio.sh out \"Högtalare i MacBook Pro\"}" ;;
   in)   setdev input  "${2:?ange enhetsnamn}" ;;
   status) status ;;

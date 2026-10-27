@@ -135,6 +135,11 @@ export function useSpeechCapture(opts: SpeechCaptureOptions = {}): SpeechCapture
       else if (code === 'network') error.value = 'no-internet'
     }
     r.onend = () => {
+      // Bara den AKTUELLA instansen får styra tillstånd/omstart. En gammal
+      // instans från föregående tur (vars rec.stop() gav ett försenat onend)
+      // dör tyst — annars skulle den zombie-starta om sig när nästa tur satt
+      // wantOn=true igen och krocka med den nya → tur 2 fångades inte.
+      if (r !== rec) return
       interimTranscript.value = ''
       // Chrome stänger efter tystnad; starta om tyst om fönstret lever kvar.
       if (wantOn) {

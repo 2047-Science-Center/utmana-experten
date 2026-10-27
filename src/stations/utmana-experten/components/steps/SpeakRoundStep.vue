@@ -25,7 +25,7 @@ const errReason = computed(() => {
     case 'not-allowed':
       return 'mikrofonen blockerad — tillåt mick för sidan'
     case 'no-mic':
-      return 'ingen mikrofon hittad — kolla att Ankern är vald som in-enhet'
+      return 'ingen mikrofon hittad — kolla att Volt-micken är vald som in-enhet'
     case 'no-internet':
       return 'ingen internetanslutning — Web Speech är molnbaserat'
     default:
