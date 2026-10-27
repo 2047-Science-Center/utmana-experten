@@ -76,7 +76,31 @@ if [ "$BROKER" = "localhost" ] || [ "$BROKER" = "127.0.0.1" ]; then
     || echo "  ⚠ mosquitto startar inte — kolla: journalctl -xeu mosquitto.service"
   ESP_BROKER="$(hostname -I | awk '{print $1}')"
 else
-  echo "▸ EXTERN broker: $BROKER — installerar ingen lokal."
+  # Husets broker (t.ex. 2047-brokern 192.168.0.23) serverar INTE browser-MQTT-over-WS.
+  # Mönstret (se Eco Locos SPELLEDARAPP-FORSLAG): en lokal mosquitto som exponerar
+  # WS 9001 och BRYGGAR utmanaexperten/# till husets broker. Browsern pratar lokal WS,
+  # allt flödar ändå till/från husets broker. ESP + hjärna pratar rå 1883 mot $BROKER direkt.
+  echo "▸ EXTERN broker: $BROKER — sätter upp lokal WS-brygga (mosquitto 9001 → $BROKER:1883)…"
+  sudo apt-get install -y mosquitto
+  # Bara bryggan får definiera 9001 (annars dubbel-listener → mosquitto startar inte).
+  sudo rm -f /etc/mosquitto/conf.d/utmana.conf /etc/mosquitto/conf.d/utmana-ws.conf
+  sudo tee /etc/mosquitto/conf.d/utmana-bridge.conf >/dev/null <<EOF
+listener 9001 0.0.0.0
+protocol websockets
+allow_anonymous true
+
+connection utmana-house
+address ${BROKER}:1883
+topic utmanaexperten/# both 0
+try_private false
+bridge_protocol_version mqttv311
+EOF
+  sudo systemctl enable mosquitto 2>/dev/null || true
+  sudo systemctl restart mosquitto || true
+  sleep 1
+  sudo systemctl is-active --quiet mosquitto \
+    && echo "  ✓ WS-brygga kör (lokal 9001 → $BROKER:1883)" \
+    || echo "  ⚠ bryggan startar inte — kolla: grep -rn listener /etc/mosquitto/conf.d/ ; journalctl -xeu mosquitto"
   ESP_BROKER="$BROKER"
 fi
 
@@ -123,9 +147,10 @@ sudo loginctl enable-linger "$USER" 2>/dev/null || true
 
 # --- Kiosk-skript (Google Chrome, Web Speech, mic auto-godkänd, Anker-ljud) ---
 mkdir -p "$HOME/.local/bin"
-# App:en pratar MQTT-over-WS mot brokern. Lokal broker → localhost; husets broker
-# (t.ex. 192.168.0.23) → den IP:n. $BROKER är "localhost" eller den externa adressen.
-KIOSK_URL="http://localhost:${PORT}/?mqtt=ws://${BROKER}:9001"
+# App:en pratar ALLTID lokal WS 9001: lokal broker (localhost-läge) ELLER lokal
+# WS-brygga (extern-broker-läge). Browsern kan inte prata rå MQTT mot husets broker,
+# och husets broker serverar inte browser-WS — bryggan löser det (se broker-sektionen).
+KIOSK_URL="http://localhost:${PORT}/?mqtt=ws://localhost:9001"
 cat > "$HOME/.local/bin/utmana-kiosk.sh" <<EOF
 #!/usr/bin/env bash
 # Utmana experten kiosk — genererad av installera-mint.sh. Startas från skrivbordsikonen.
