@@ -132,14 +132,19 @@ void publishKnapp(int plats, const char *knapp) {
   Serial.print(F("[test2] knapp -> ")); Serial.println(msg);
 }
 
-void connectMqtt() {
-  int tries = 0;
-  while (!mqtt.connected() && tries++ < 5) {
-    if (mqtt.connect(MQTT_CLIENT)) {
-      Serial.println(F("[test2] MQTT connected + subscribed"));
-      mqtt.subscribe((String(ROOT) + "/out/led/#").c_str());
-      mqtt.subscribe((String(ROOT) + "/out/fx").c_str());
-    } else { Serial.print(F("[test2] MQTT fail rc=")); Serial.println(mqtt.state()); delay(1000); }
+// Icke-blockerande återanslutning: ETT försök var 1,5 s, så loop()/knapparna
+// aldrig fryser medan nätet svajar. (Gamla blockerande delay(1000)×5 gjorde
+// riggen trög och tappade knapptryck vid återanslutning.)
+unsigned long lastMqttTry = 0;
+void ensureMqtt() {
+  if (mqtt.connected() || millis() - lastMqttTry < 1500) return;
+  lastMqttTry = millis();
+  if (mqtt.connect(MQTT_CLIENT)) {
+    Serial.println(F("[test2] MQTT connected + subscribed"));
+    mqtt.subscribe((String(ROOT) + "/out/led/#").c_str());
+    mqtt.subscribe((String(ROOT) + "/out/fx").c_str());
+  } else {
+    Serial.print(F("[test2] MQTT fail rc=")); Serial.println(mqtt.state());
   }
 }
 
@@ -147,10 +152,13 @@ void setup() {
   Serial.begin(115200); delay(300); Serial.println(F("\n[test2] start (ESP32-S3-ETH, 2 spelare, 30 px)"));
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS); FastLED.setBrightness(BRIGHTNESS); FastLED.clear(true);
   for (int b = 0; b < BTN_COUNT; b++) { pinMode(btnPins[b], INPUT_PULLUP); lastReading[b] = HIGH; btnState[b] = HIGH; lastChange[b] = 0; }
-  WiFi.mode(WIFI_STA); WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);        // AV med modemsömn → annars tappas MQTT-paket (QoS0) sporadiskt
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
   unsigned long t0 = millis(); while (WiFi.status() != WL_CONNECTED && millis() - t0 < 20000) { delay(200); Serial.print("."); }
   if (WiFi.status() == WL_CONNECTED) { Serial.print(F("\n[test2] WiFi OK, IP ")); Serial.println(WiFi.localIP()); } else Serial.println(F("\n[test2] WiFi FAILED"));
   mqtt.setServer(MQTT_HOST, MQTT_PORT); mqtt.setCallback(onMsg);
+  mqtt.setKeepAlive(15); mqtt.setSocketTimeout(5);   // snabbare upptäckt av död länk
 }
 
 void readButtons() {
@@ -166,7 +174,7 @@ void readButtons() {
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED) { WiFi.reconnect(); delay(200); }
-  if (!mqtt.connected()) connectMqtt();
+  ensureMqtt();
   mqtt.loop();
   while (Serial.available()) { char k = Serial.read(); if (k == 't' || k == 'T') publishKnapp(btnPlats[0], btnKnapp[0]); }
   readButtons();
