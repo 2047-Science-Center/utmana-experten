@@ -8,6 +8,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useUtmanaStore } from '../../store/utmanaStore'
 import { useSpeechCapture } from '@/station-kit/capture/useSpeechCapture'
+import { audio } from '@/station-kit/audio/AudioEngine'
 import { config } from '@/config'
 import Horseshoe from '../Horseshoe.vue'
 
@@ -73,6 +74,7 @@ watch(
 // hjärnan gör röd puls på aktiv plats. (Påverkar inte capturen.)
 watch(secondsLeft, (s) => {
   if (s > 0 && s <= config.warnAtSeconds && store.activePlats > 0) store.cueTimer(s)
+  if (s === config.warnAtSeconds && store.activePlats > 0) audio.play('timer-varning')
 })
 watch(
   () => store.paused,

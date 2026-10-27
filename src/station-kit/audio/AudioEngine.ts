@@ -3,30 +3,67 @@
  * finns, annars faller tillbaka på SYNTETISERAD SFX via Web Audio. Så kiosken
  * hör den sammanhållna ljudidentiteten, och allt funkar även utan filer.
  *
+ * One-shots via `play(sfx)`. Loopar (bäddar: attract/tänk/bearbetar) via
+ * `playLoop`/`stopLoop`; `duck(on)` sänker alla bäddar (t.ex. under klippet).
+ *
  * Kiosk-autoplay: AudioContext skapas låst och låses upp på första
  * användargesten (attract-/"tryck för att börja"-skärmen). Global mute + volym.
  */
 
 export type Sfx =
-  | 'blip' // tangent-blip (teletype)
-  | 'confirm' // bekräfta-pling
-  | 'deny' // neka/fel-surr
-  | 'render' // bild-render-svep
-  | 'hatch' // lucka-tänd-blip
-  | 'win' // vinst-fanfar
-  | 'boot' // boot-sekvens
+  // äldre (synt-fallback finns)
+  | 'blip'
+  | 'confirm'
+  | 'deny'
+  | 'render'
+  | 'hatch'
+  | 'win'
+  | 'boot'
+  // nya flödes-cues (fil-backade; organisk-omställning)
+  | 'namn-klar'
+  | 'fraga-anslag'
+  | 'alla-rostat'
+  | 'din-tur'
+  | 'timer-varning'
+  | 'bedomning-klar'
+  | 'dom-landar'
+  | 'facit'
+  | 'gate-in'
+  | 'redo'
+  | 'alla-gront'
+  | 'pre-klipp'
+  | 'overlay-chime'
+  | 'steg-whoosh'
+  | 'pre-reveal'
+  | 'utfall-tankte-om'
+  | 'utfall-stod-fast'
 
-/** Cues med en riktig ljudfil i public/audio/<namn>.mp3 (resten = syntton). */
-const FILE_CUES: Sfx[] = ['confirm', 'blip', 'boot', 'win', 'deny']
+/** Sömlösa bäddar som spelas som loop (via playLoop/stopLoop). */
+export type LoopSfx = 'attract-loop' | 'tank-badd' | 'bearbetar'
+
+type AnyCue = Sfx | LoopSfx
+
+/** One-shot-cues med en riktig ljudfil i public/audio/<namn>.mp3. */
+const FILE_CUES: Sfx[] = [
+  'confirm', 'blip', 'boot', 'win', 'deny',
+  'namn-klar', 'fraga-anslag', 'alla-rostat', 'din-tur', 'timer-varning',
+  'bedomning-klar', 'dom-landar', 'facit', 'gate-in', 'redo', 'alla-gront',
+  'pre-klipp', 'overlay-chime', 'steg-whoosh', 'pre-reveal',
+  'utfall-tankte-om', 'utfall-stod-fast',
+]
+const LOOP_CUES: LoopSfx[] = ['attract-loop', 'tank-badd', 'bearbetar']
 
 class AudioEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
+  private loopBus: GainNode | null = null // alla bäddar hit → duckning
   private _muted = false
   private _volume = 0.6
   private unlocked = false
-  /** Avkodade ljudfiler per cue (laddas vid unlock). Saknas → syntton. */
-  private buffers: Partial<Record<Sfx, AudioBuffer>> = {}
+  /** Avkodade ljudfiler per cue (laddas vid unlock). Saknas → syntton/tyst. */
+  private buffers: Partial<Record<AnyCue, AudioBuffer>> = {}
+  /** Aktiva looper (bäddar) → deras källa, för stopp. */
+  private loops: Partial<Record<LoopSfx, AudioBufferSourceNode>> = {}
 
   get muted(): boolean {
     return this._muted
@@ -67,6 +104,9 @@ class AudioEngine {
       this.master = this.ctx.createGain()
       this.master.gain.value = this._muted ? 0 : this._volume
       this.master.connect(this.ctx.destination)
+      this.loopBus = this.ctx.createGain()
+      this.loopBus.gain.value = 1
+      this.loopBus.connect(this.master)
       this.unlocked = true
     } catch {
       // Ljud är icke-kritiskt — spelet funkar utan.
@@ -77,20 +117,21 @@ class AudioEngine {
   }
 
   /** Hämta + avkoda ljudfilerna en gång (icke-kritiskt; faller tillbaka på
-   *  syntton om något saknas eller inte hinner laddas). */
+   *  syntton/tyst om något saknas eller inte hinner laddas). */
   private async preload(): Promise<void> {
     const ctx = this.ctx
     if (!ctx) return
     const base = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '')
+    const all: AnyCue[] = [...FILE_CUES, ...LOOP_CUES]
     await Promise.all(
-      FILE_CUES.map(async (name) => {
+      all.map(async (name) => {
         if (this.buffers[name]) return
         try {
           const res = await fetch(encodeURI(`${base}/audio/${name}.mp3`))
           if (!res.ok) return
           this.buffers[name] = await ctx.decodeAudioData(await res.arrayBuffer())
         } catch {
-          /* ingen fil / avkodning misslyckades → syntton används */
+          /* ingen fil / avkodning misslyckades → syntton/tyst används */
         }
       }),
     )
@@ -105,7 +146,47 @@ class AudioEngine {
     src.start()
   }
 
-  /** En enkel ton med envelope. */
+  // ---- Looper / bäddar ----
+
+  /** Starta en bädd som loop (no-op om redan igång eller fil saknas). */
+  playLoop(name: LoopSfx): void {
+    if (this.loops[name] || !this.ctx || !this.loopBus) return
+    const buf = this.buffers[name]
+    if (!buf) return // ingen fil → ingen bädd (syntton skulle inte loopa snyggt)
+    const src = this.ctx.createBufferSource()
+    src.buffer = buf
+    src.loop = true
+    src.connect(this.loopBus)
+    src.start()
+    this.loops[name] = src
+  }
+
+  /** Stoppa en bädd. */
+  stopLoop(name: LoopSfx): void {
+    const src = this.loops[name]
+    if (!src) return
+    try {
+      src.stop()
+    } catch {
+      /* redan stoppad */
+    }
+    delete this.loops[name]
+  }
+
+  /** Stoppa alla bäddar. */
+  stopAllLoops(): void {
+    for (const name of Object.keys(this.loops) as LoopSfx[]) this.stopLoop(name)
+  }
+
+  /** Ducka ned (eller återställ) alla bäddar — t.ex. under klippet. */
+  duck(on: boolean): void {
+    if (!this.loopBus || !this.ctx) return
+    const g = on ? 0.18 : 1
+    this.loopBus.gain.setTargetAtTime(g, this.ctx.currentTime, 0.15)
+  }
+
+  // ---- Syntton (fallback för äldre cues) ----
+
   private tone(
     freq: number,
     start: number,
@@ -127,7 +208,6 @@ class AudioEngine {
     osc.stop(start + dur + 0.02)
   }
 
-  /** Ett frekvenssvep (render, boot). */
   private sweep(
     from: number,
     to: number,
@@ -159,7 +239,7 @@ class AudioEngine {
 
   play(sfx: Sfx): void {
     if (this._muted || !this.ctx || !this.master) return
-    // Riktig ljudfil om den laddats, annars syntton (fallback).
+    // Riktig ljudfil om den laddats, annars syntton (fallback för äldre cues).
     const buf = this.buffers[sfx]
     if (buf) {
       this.playBuffer(buf)
@@ -194,6 +274,9 @@ class AudioEngine {
       case 'boot':
         this.sweep(80, 520, now, 0.5, 'sawtooth', 0.1)
         this.tone(660, now + 0.55, 0.08, 'square', 0.12)
+        break
+      default:
+        /* nya cues utan fil → tyst (icke-kritiskt) */
         break
     }
   }
